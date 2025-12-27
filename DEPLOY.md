@@ -48,7 +48,9 @@ git push origin main
    - **Build Command**: `pip install -r requirements.txt`
    - **Start Command**: `gunicorn run:app --bind 0.0.0.0:$PORT`
    - **Environment**: `Python 3`
-   - **Python Version**: `3.11` (or latest available)
+   - **Python Version**: `3.11` (important: must be 3.11, not 3.13, due to pandas compatibility)
+   
+   **Note**: The `runtime.txt` file in the repository specifies Python 3.11.9. Render should automatically detect this, but you can also manually set it to Python 3.11 in the dashboard.
 
 ### 4. Environment Variables (Optional)
 
@@ -93,6 +95,7 @@ Render automatically deploys when you push to your main branch. You can also:
 
 - Check the build logs in Render dashboard
 - Ensure all dependencies are in `requirements.txt`
+- **Python Version Issue**: If you see pandas compilation errors, ensure Python 3.11 is selected (not 3.13). The `runtime.txt` file should handle this automatically, but you can manually set it in Render dashboard under "Settings" → "Python Version"
 - Verify Python version compatibility
 
 ### App Crashes
