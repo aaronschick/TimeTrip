@@ -14,7 +14,8 @@ app = create_app()
 
 if __name__ == '__main__':
     port = Config.PORT
+    debug = os.environ.get('FLASK_ENV') != 'production'
     print(f"Starting Chronoverse on http://localhost:{port}")
     print(f"Press Ctrl+C to stop the server")
-    app.run(debug=True, host='0.0.0.0', port=port)
+    app.run(debug=debug, host='0.0.0.0', port=port)
 
