@@ -2,6 +2,8 @@ from flask import Blueprint, render_template, jsonify, request
 import os
 import sys
 import pandas as pd
+import uuid
+from datetime import datetime
 
 # Import config - handle both direct execution and Flask app context
 try:
@@ -115,6 +117,111 @@ def debug():
                 'max': float(timeline_gen.df['end_year'].max())
             },
             'categories': timeline_gen.df['category'].value_counts().to_dict() if 'category' in timeline_gen.df.columns else {}
+        })
+    except Exception as e:
+        import traceback
+        return jsonify({'error': str(e), 'traceback': traceback.format_exc()}), 500
+
+@bp.route('/api/events', methods=['POST'])
+def add_event():
+    """Add a new event to the timeline"""
+    try:
+        data = request.get_json()
+        
+        # Validate required fields
+        required_fields = ['title', 'category', 'start_year']
+        for field in required_fields:
+            if field not in data or not data[field]:
+                return jsonify({'error': f'Missing required field: {field}'}), 400
+        
+        # Generate ID if not provided
+        event_id = data.get('id') or f"event-{uuid.uuid4().hex[:8]}"
+        
+        # Check if ID already exists
+        if event_id in timeline_gen.df['id'].values:
+            return jsonify({'error': f'Event with ID "{event_id}" already exists'}), 400
+        
+        # Prepare new event data
+        new_event = {
+            'id': event_id,
+            'title': data['title'],
+            'category': data['category'],
+            'continent': data.get('continent', 'Global'),
+            'start_year': int(data['start_year']),
+            'end_year': int(data.get('end_year', data['start_year'])),
+            'description': data.get('description', ''),
+            'start_date': data.get('start_date', ''),
+            'end_date': data.get('end_date', '')
+        }
+        
+        # Add to dataframe
+        new_row = pd.DataFrame([new_event])
+        timeline_gen.df = pd.concat([timeline_gen.df, new_row], ignore_index=True)
+        
+        # Save to CSV
+        if not timeline_gen.save_data():
+            return jsonify({'error': 'Failed to save data to file'}), 500
+        
+        # Reload data to ensure consistency
+        timeline_gen.reload_data()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Event added successfully',
+            'event': new_event
+        }), 201
+        
+    except ValueError as e:
+        return jsonify({'error': f'Invalid data: {str(e)}'}), 400
+    except Exception as e:
+        import traceback
+        return jsonify({'error': str(e), 'traceback': traceback.format_exc()}), 500
+
+@bp.route('/api/events/<event_id>', methods=['DELETE'])
+def delete_event(event_id):
+    """Delete an event from the timeline"""
+    try:
+        # Check if event exists
+        if event_id not in timeline_gen.df['id'].values:
+            return jsonify({'error': f'Event with ID "{event_id}" not found'}), 404
+        
+        # Remove event
+        timeline_gen.df = timeline_gen.df[timeline_gen.df['id'] != event_id].reset_index(drop=True)
+        
+        # Save to CSV
+        if not timeline_gen.save_data():
+            return jsonify({'error': 'Failed to save data to file'}), 500
+        
+        # Reload data to ensure consistency
+        timeline_gen.reload_data()
+        
+        return jsonify({
+            'success': True,
+            'message': f'Event "{event_id}" deleted successfully'
+        }), 200
+        
+    except Exception as e:
+        import traceback
+        return jsonify({'error': str(e), 'traceback': traceback.format_exc()}), 500
+
+@bp.route('/api/events', methods=['GET'])
+def list_events():
+    """Get list of all events (for management)"""
+    try:
+        start_year = request.args.get('start_year', type=int)
+        end_year = request.args.get('end_year', type=int)
+        
+        if start_year is not None and end_year is not None:
+            data = timeline_gen.get_filtered_data(start_year, end_year)
+        else:
+            data = timeline_gen.df
+        
+        # Convert to dict, handling NaN values
+        records = data.replace({pd.NA: None, pd.NaT: None}).to_dict('records')
+        
+        return jsonify({
+            'count': len(records),
+            'data': records
         })
     except Exception as e:
         import traceback

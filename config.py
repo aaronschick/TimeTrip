@@ -11,6 +11,10 @@ class Config:
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     TIMELINE_DATA_FILE = os.path.join(BASE_DIR, 'timeline_data_4.csv')
     
+    # For production deployments (like Render), files in the repo are read-only
+    # Changes will be lost on redeploy. Consider using a database for persistence.
+    # For now, we'll try to write to the original file, but handle errors gracefully.
+    
     # Server settings
     PORT = int(os.environ.get('PORT', 5001))  # Default to 5001 to avoid AirPlay conflict on macOS
     

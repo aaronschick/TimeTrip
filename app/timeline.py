@@ -19,6 +19,7 @@ class TimelineGenerator:
     
     def __init__(self, csv_path):
         """Initialize with path to CSV data file"""
+        self.csv_path = csv_path
         self.df = self._load_data(csv_path)
         self.RECENT_MIN_YEAR = Config.RECENT_MIN_YEAR
         self.RECENT_MAX_YEAR = Config.RECENT_MAX_YEAR
@@ -307,4 +308,75 @@ class TimelineGenerator:
         
         # Convert to JSON for frontend
         return json.loads(fig.to_json())
+    
+    def save_data(self):
+        """Save the current dataframe back to CSV file"""
+        try:
+            # Check if file is writable
+            if os.path.exists(self.csv_path) and not os.access(self.csv_path, os.W_OK):
+                # Try to use a writable location (for production environments like Render)
+                # On Render, repo files are read-only, so we'd need a database for persistence
+                # For now, try a temp location or return False with a helpful message
+                print(f"Warning: CSV file is not writable at {self.csv_path}")
+                print("Note: On production platforms like Render, files in the repo are read-only.")
+                print("Changes will be lost on redeploy. Consider using a database for persistence.")
+                # Try to write to a writable location as fallback
+                import tempfile
+                temp_dir = os.environ.get('TMPDIR', '/tmp')
+                fallback_path = os.path.join(temp_dir, 'timeline_data.csv')
+                print(f"Attempting to write to fallback location: {fallback_path}")
+                self.csv_path = fallback_path
+            
+            # Prepare dataframe for saving - keep only original CSV columns
+            columns_to_save = ['id', 'title', 'category', 'continent', 'start_year', 'end_year', 'description']
+            
+            # Add date columns if they exist in the dataframe
+            if 'start_date' in self.df.columns:
+                columns_to_save.append('start_date')
+            if 'end_date' in self.df.columns:
+                columns_to_save.append('end_date')
+            
+            # Select only columns that exist
+            columns_to_save = [col for col in columns_to_save if col in self.df.columns]
+            
+            # Create a copy for saving
+            df_to_save = self.df[columns_to_save].copy()
+            
+            # Convert date columns to strings if they exist
+            if 'start_date' in df_to_save.columns:
+                df_to_save['start_date'] = df_to_save['start_date'].apply(
+                    lambda x: x.strftime('%Y-%m-%d') if pd.notna(x) and hasattr(x, 'strftime') else ''
+                )
+            if 'end_date' in df_to_save.columns:
+                df_to_save['end_date'] = df_to_save['end_date'].apply(
+                    lambda x: x.strftime('%Y-%m-%d') if pd.notna(x) and hasattr(x, 'strftime') else ''
+                )
+            
+            # Fill NaN values with empty strings for CSV compatibility
+            df_to_save = df_to_save.fillna('')
+            
+            # Save to CSV
+            df_to_save.to_csv(self.csv_path, index=False)
+            print(f"Data saved successfully to {self.csv_path}")
+            return True
+        except PermissionError as e:
+            print(f"Permission error saving data: {e}")
+            print("The CSV file may be read-only. On production platforms, consider using a database.")
+            return False
+        except Exception as e:
+            print(f"Error saving data: {e}")
+            import traceback
+            traceback.print_exc()
+            return False
+    
+    def reload_data(self):
+        """Reload data from CSV file"""
+        try:
+            self.df = self._load_data(self.csv_path)
+            return True
+        except Exception as e:
+            print(f"Error reloading data: {e}")
+            import traceback
+            traceback.print_exc()
+            return False
 
