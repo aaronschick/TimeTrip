@@ -15,24 +15,56 @@ except ImportError:
     from config import Config
 
 class TimelineGenerator:
-    """Generates timeline visualizations from CSV data"""
+    """Generates timeline visualizations from database"""
     
-    def __init__(self, csv_path):
-        """Initialize with path to CSV data file"""
-        self.csv_path = csv_path
-        self.df = self._load_data(csv_path)
+    def __init__(self, db_session=None):
+        """Initialize with database session"""
+        self.db_session = db_session
+        self.df = None
         self.RECENT_MIN_YEAR = Config.RECENT_MIN_YEAR
         self.RECENT_MAX_YEAR = Config.RECENT_MAX_YEAR
+        self._load_data()
         
-    def _load_data(self, csv_path):
-        """Load and prepare data from CSV"""
-        # Read CSV and drop any empty columns (from trailing commas)
-        df = pd.read_csv(csv_path)
-        df = df.dropna(axis=1, how='all')  # Remove completely empty columns
+    def _load_data(self):
+        """Load and prepare data from database"""
+        if self.db_session is None:
+            # Fallback: try to load from CSV if database not available
+            try:
+                from config import Config
+                csv_path = Config.TIMELINE_DATA_FILE
+                if os.path.exists(csv_path):
+                    df = pd.read_csv(csv_path)
+                    df = df.dropna(axis=1, how='all')
+                else:
+                    df = pd.DataFrame()
+            except:
+                df = pd.DataFrame()
+        else:
+            # Load from database
+            from app.models import TimelineEvent
+            events = self.db_session.query(TimelineEvent).all()
+            
+            if not events:
+                df = pd.DataFrame()
+            else:
+                # Convert to list of dicts
+                data = [event.to_dict() for event in events]
+                df = pd.DataFrame(data)
+        
+        if df.empty:
+            # Return empty dataframe with expected columns
+            df = pd.DataFrame(columns=['id', 'title', 'category', 'continent', 'start_year', 'end_year', 'description', 'start_date', 'end_date'])
         
         # Ensure year columns exist and are numeric
-        df["start_year"] = pd.to_numeric(df["start_year"], errors='coerce')
-        df["end_year"] = pd.to_numeric(df["end_year"], errors='coerce')
+        if 'start_year' in df.columns:
+            df["start_year"] = pd.to_numeric(df["start_year"], errors='coerce')
+        else:
+            df["start_year"] = None
+            
+        if 'end_year' in df.columns:
+            df["end_year"] = pd.to_numeric(df["end_year"], errors='coerce')
+        else:
+            df["end_year"] = None
         
         # Convenience column for numeric plotting
         df["year"] = df["start_year"]
@@ -49,7 +81,7 @@ class TimelineGenerator:
             df["end_date"] = pd.NaT
         
         # Category order - include all categories found in data, not just predefined ones
-        if "category" in df.columns:
+        if "category" in df.columns and not df.empty:
             # Get all unique categories from the data
             data_categories = df["category"].dropna().unique().tolist()
             # Combine with predefined order, keeping order but adding any missing categories
@@ -61,7 +93,7 @@ class TimelineGenerator:
             # Set as categorical with all categories
             df["category"] = pd.Categorical(df["category"], categories=all_categories, ordered=True)
         
-        return df
+        self.df = df
     
     def get_filtered_data(self, start_year, end_year):
         """Get filtered data for the given year range"""
@@ -309,70 +341,10 @@ class TimelineGenerator:
         # Convert to JSON for frontend
         return json.loads(fig.to_json())
     
-    def save_data(self):
-        """Save the current dataframe back to CSV file"""
-        try:
-            # Check if file is writable
-            if os.path.exists(self.csv_path) and not os.access(self.csv_path, os.W_OK):
-                # Try to use a writable location (for production environments like Render)
-                # On Render, repo files are read-only, so we'd need a database for persistence
-                # For now, try a temp location or return False with a helpful message
-                print(f"Warning: CSV file is not writable at {self.csv_path}")
-                print("Note: On production platforms like Render, files in the repo are read-only.")
-                print("Changes will be lost on redeploy. Consider using a database for persistence.")
-                # Try to write to a writable location as fallback
-                import tempfile
-                temp_dir = os.environ.get('TMPDIR', '/tmp')
-                fallback_path = os.path.join(temp_dir, 'timeline_data.csv')
-                print(f"Attempting to write to fallback location: {fallback_path}")
-                self.csv_path = fallback_path
-            
-            # Prepare dataframe for saving - keep only original CSV columns
-            columns_to_save = ['id', 'title', 'category', 'continent', 'start_year', 'end_year', 'description']
-            
-            # Add date columns if they exist in the dataframe
-            if 'start_date' in self.df.columns:
-                columns_to_save.append('start_date')
-            if 'end_date' in self.df.columns:
-                columns_to_save.append('end_date')
-            
-            # Select only columns that exist
-            columns_to_save = [col for col in columns_to_save if col in self.df.columns]
-            
-            # Create a copy for saving
-            df_to_save = self.df[columns_to_save].copy()
-            
-            # Convert date columns to strings if they exist
-            if 'start_date' in df_to_save.columns:
-                df_to_save['start_date'] = df_to_save['start_date'].apply(
-                    lambda x: x.strftime('%Y-%m-%d') if pd.notna(x) and hasattr(x, 'strftime') else ''
-                )
-            if 'end_date' in df_to_save.columns:
-                df_to_save['end_date'] = df_to_save['end_date'].apply(
-                    lambda x: x.strftime('%Y-%m-%d') if pd.notna(x) and hasattr(x, 'strftime') else ''
-                )
-            
-            # Fill NaN values with empty strings for CSV compatibility
-            df_to_save = df_to_save.fillna('')
-            
-            # Save to CSV
-            df_to_save.to_csv(self.csv_path, index=False)
-            print(f"Data saved successfully to {self.csv_path}")
-            return True
-        except PermissionError as e:
-            print(f"Permission error saving data: {e}")
-            print("The CSV file may be read-only. On production platforms, consider using a database.")
-            return False
-        except Exception as e:
-            print(f"Error saving data: {e}")
-            import traceback
-            traceback.print_exc()
-            return False
-    
     def reload_data(self):
-        """Reload data from CSV file"""
+        """Reload data from database"""
         try:
-            self.df = self._load_data(self.csv_path)
+            self._load_data()
             return True
         except Exception as e:
             print(f"Error reloading data: {e}")

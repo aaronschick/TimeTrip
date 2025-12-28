@@ -7,13 +7,27 @@ class Config:
     """Base configuration"""
     SECRET_KEY = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
     
-    # Data file path - using the original timeline_data_4.csv file
+    # Database configuration
+    # For local development, use SQLite (no setup required)
+    # For production (Render), use PostgreSQL from DATABASE_URL
+    DATABASE_URL = os.environ.get('DATABASE_URL')
+    
+    if DATABASE_URL:
+        # Production: PostgreSQL from Render or other provider
+        # Replace postgres:// with postgresql:// for SQLAlchemy compatibility
+        if DATABASE_URL.startswith('postgres://'):
+            DATABASE_URL = DATABASE_URL.replace('postgres://', 'postgresql://', 1)
+        SQLALCHEMY_DATABASE_URI = DATABASE_URL
+    else:
+        # Development: SQLite (fallback)
+        BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+        SQLALCHEMY_DATABASE_URI = f'sqlite:///{os.path.join(BASE_DIR, "timetrip.db")}'
+    
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+    
+    # Legacy CSV file path (for migration purposes)
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     TIMELINE_DATA_FILE = os.path.join(BASE_DIR, 'timeline_data_4.csv')
-    
-    # For production deployments (like Render), files in the repo are read-only
-    # Changes will be lost on redeploy. Consider using a database for persistence.
-    # For now, we'll try to write to the original file, but handle errors gracefully.
     
     # Server settings
     PORT = int(os.environ.get('PORT', 5001))  # Default to 5001 to avoid AirPlay conflict on macOS

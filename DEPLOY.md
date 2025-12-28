@@ -52,13 +52,34 @@ git push origin main
    
    **Note**: The `runtime.txt` file in the repository specifies Python 3.11.9. Render should automatically detect this, but you can also manually set it to Python 3.11 in the dashboard.
 
-### 4. Environment Variables (Optional)
+### 4. Create PostgreSQL Database
 
-You can set environment variables in Render's dashboard:
+1. In your Render dashboard, click "New +"
+2. Select "PostgreSQL"
+3. Configure:
+   - **Name**: `timetrip-db` (or any name)
+   - **Database**: `timetrip`
+   - **Region**: Same as your web service (recommended)
+4. Click "Create Database"
+5. **Copy the connection string** (Internal Database URL)
+
+### 5. Link Database to Web Service
+
+1. Go to your web service settings
+2. Under "Environment", add:
+   - **Key**: `DATABASE_URL`
+   - **Value**: Paste the connection string from Step 4
+   - **Note**: If the URL starts with `postgres://`, Render will automatically convert it
+3. Save changes
+
+### 6. Environment Variables
+
+Set these in your web service settings:
+- `DATABASE_URL`: PostgreSQL connection string (from Step 4)
 - `FLASK_ENV`: Set to `production` for production mode
-- `SECRET_KEY`: Generate a random secret key for production (optional but recommended)
+- `SECRET_KEY`: Generate a random secret key (optional but recommended)
 
-### 5. Deploy
+### 7. Deploy
 
 1. Click "Create Web Service"
 2. Render will automatically:
@@ -67,6 +88,21 @@ You can set environment variables in Render's dashboard:
    - Start your application
 3. Wait for the build to complete (usually 2-5 minutes)
 4. Your app will be live at: `https://timetrip.onrender.com` (or your custom name)
+
+### 8. Initialize Database
+
+After the first deployment:
+
+1. The database tables will be created automatically
+2. To import your CSV data:
+   - Option A: Use the web interface "Add Event" button
+   - Option B: If you have shell access, run:
+     ```bash
+     python init_db.py --csv timeline_data_4.csv
+     ```
+   - Option C: Add events manually through the web interface
+
+**Note**: On Render's free tier, you may not have shell access. In that case, use the web interface to add events.
 
 ## Custom Domain (Optional)
 

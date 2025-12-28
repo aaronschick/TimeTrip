@@ -10,6 +10,8 @@ except ImportError:
     sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     from config import Config
 
+from app.models import db
+
 def create_app():
     # Get the root directory (parent of app/)
     root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -20,6 +22,13 @@ def create_app():
                 template_folder=template_dir,
                 static_folder=static_dir)
     app.config.from_object(Config)
+    
+    # Initialize database
+    db.init_app(app)
+    
+    # Create tables if they don't exist
+    with app.app_context():
+        db.create_all()
     
     # Register blueprints
     from app.routes import bp

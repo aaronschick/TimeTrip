@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, jsonify, request
+from flask import Blueprint, render_template, jsonify, request, current_app
 import os
 import sys
 import pandas as pd
@@ -14,11 +14,13 @@ except ImportError:
     from config import Config
 
 from app.timeline import TimelineGenerator
+from app.models import db, TimelineEvent
 
 bp = Blueprint('main', __name__)
 
-# Initialize timeline generator
-timeline_gen = TimelineGenerator(Config.TIMELINE_DATA_FILE)
+def get_timeline_generator():
+    """Get timeline generator with current database session"""
+    return TimelineGenerator(db.session)
 
 @bp.route('/')
 def index():
@@ -32,6 +34,8 @@ def get_timeline():
     end_year = request.args.get('end_year', type=int, default=2025)
     
     try:
+        timeline_gen = get_timeline_generator()
+        
         # Get count before generating figure
         filtered_data = timeline_gen.get_filtered_data(start_year, end_year)
         event_count = len(filtered_data)
@@ -64,6 +68,7 @@ def get_data():
     end_year = request.args.get('end_year', type=int, default=2025)
     
     try:
+        timeline_gen = get_timeline_generator()
         data = timeline_gen.get_filtered_data(start_year, end_year)
         # Convert to dict, handling NaN values
         records = data.replace({pd.NA: None, pd.NaT: None}).to_dict('records')
@@ -79,11 +84,12 @@ def get_data():
 def debug():
     """Debug endpoint to check data loading"""
     try:
+        timeline_gen = get_timeline_generator()
         total_rows = len(timeline_gen.df)
         
         # Convert sample data, handling NaT and NaN values
-        sample_df = timeline_gen.df.head(5).copy()
-        sample_data = sample_df.replace({pd.NA: None, pd.NaT: None}).to_dict('records')
+        sample_df = timeline_gen.df.head(5).copy() if not timeline_gen.df.empty else pd.DataFrame()
+        sample_data = sample_df.replace({pd.NA: None, pd.NaT: None}).to_dict('records') if not sample_df.empty else []
         # Convert any remaining datetime/NaT to strings
         for record in sample_data:
             for key, value in record.items():
@@ -92,7 +98,7 @@ def debug():
                 elif hasattr(value, 'isoformat'):  # datetime objects
                     record[key] = value.isoformat()
         
-        columns = list(timeline_gen.df.columns)
+        columns = list(timeline_gen.df.columns) if not timeline_gen.df.empty else []
         
         # Check filtered data for default range
         default_start = -5_000_000_000
@@ -100,23 +106,26 @@ def debug():
         filtered = timeline_gen.get_filtered_data(default_start, default_end)
         
         # Check for missing data
-        missing_years = timeline_gen.df['year'].isna().sum()
+        missing_years = timeline_gen.df['year'].isna().sum() if 'year' in timeline_gen.df.columns else 0
         missing_categories = timeline_gen.df['category'].isna().sum() if 'category' in timeline_gen.df.columns else 0
+        
+        # Database info
+        db_count = TimelineEvent.query.count()
         
         return jsonify({
             'total_rows': total_rows,
+            'db_count': db_count,
             'filtered_rows': len(filtered),
             'missing_years': int(missing_years),
             'missing_categories': int(missing_categories),
             'columns': columns,
             'sample': sample_data,
-            'data_file': Config.TIMELINE_DATA_FILE,
-            'file_exists': os.path.exists(Config.TIMELINE_DATA_FILE),
+            'database_url': Config.SQLALCHEMY_DATABASE_URI.split('@')[-1] if '@' in Config.SQLALCHEMY_DATABASE_URI else 'sqlite',
             'year_range': {
-                'min': float(timeline_gen.df['start_year'].min()),
-                'max': float(timeline_gen.df['end_year'].max())
+                'min': float(timeline_gen.df['start_year'].min()) if not timeline_gen.df.empty and 'start_year' in timeline_gen.df.columns else 0,
+                'max': float(timeline_gen.df['end_year'].max()) if not timeline_gen.df.empty and 'end_year' in timeline_gen.df.columns else 0
             },
-            'categories': timeline_gen.df['category'].value_counts().to_dict() if 'category' in timeline_gen.df.columns else {}
+            'categories': timeline_gen.df['category'].value_counts().to_dict() if 'category' in timeline_gen.df.columns and not timeline_gen.df.empty else {}
         })
     except Exception as e:
         import traceback
@@ -138,42 +147,62 @@ def add_event():
         event_id = data.get('id') or f"event-{uuid.uuid4().hex[:8]}"
         
         # Check if ID already exists
-        if event_id in timeline_gen.df['id'].values:
+        existing = TimelineEvent.query.filter_by(id=event_id).first()
+        if existing:
             return jsonify({'error': f'Event with ID "{event_id}" already exists'}), 400
         
-        # Prepare new event data
-        new_event = {
-            'id': event_id,
-            'title': data['title'],
-            'category': data['category'],
-            'continent': data.get('continent', 'Global'),
-            'start_year': int(data['start_year']),
-            'end_year': int(data.get('end_year', data['start_year'])),
-            'description': data.get('description', ''),
-            'start_date': data.get('start_date', ''),
-            'end_date': data.get('end_date', '')
-        }
+        # Parse dates if provided
+        start_date = None
+        end_date = None
         
-        # Add to dataframe
-        new_row = pd.DataFrame([new_event])
-        timeline_gen.df = pd.concat([timeline_gen.df, new_row], ignore_index=True)
+        if data.get('start_date'):
+            try:
+                start_date = pd.to_datetime(data['start_date'], errors='coerce')
+                if pd.notna(start_date):
+                    start_date = start_date.date()
+                else:
+                    start_date = None
+            except:
+                start_date = None
         
-        # Save to CSV
-        if not timeline_gen.save_data():
-            return jsonify({'error': 'Failed to save data to file'}), 500
+        if data.get('end_date'):
+            try:
+                end_date = pd.to_datetime(data['end_date'], errors='coerce')
+                if pd.notna(end_date):
+                    end_date = end_date.date()
+                else:
+                    end_date = None
+            except:
+                end_date = None
         
-        # Reload data to ensure consistency
-        timeline_gen.reload_data()
+        # Create new event
+        new_event = TimelineEvent(
+            id=event_id,
+            title=data['title'].strip(),
+            category=data['category'].strip(),
+            continent=data.get('continent', 'Global').strip(),
+            start_year=int(data['start_year']),
+            end_year=int(data.get('end_year', data['start_year'])),
+            description=data.get('description', '').strip() or None,
+            start_date=start_date,
+            end_date=end_date
+        )
+        
+        # Add to database
+        db.session.add(new_event)
+        db.session.commit()
         
         return jsonify({
             'success': True,
             'message': 'Event added successfully',
-            'event': new_event
+            'event': new_event.to_dict()
         }), 201
         
     except ValueError as e:
+        db.session.rollback()
         return jsonify({'error': f'Invalid data: {str(e)}'}), 400
     except Exception as e:
+        db.session.rollback()
         import traceback
         return jsonify({'error': str(e), 'traceback': traceback.format_exc()}), 500
 
@@ -182,18 +211,13 @@ def delete_event(event_id):
     """Delete an event from the timeline"""
     try:
         # Check if event exists
-        if event_id not in timeline_gen.df['id'].values:
+        event = TimelineEvent.query.filter_by(id=event_id).first()
+        if not event:
             return jsonify({'error': f'Event with ID "{event_id}" not found'}), 404
         
-        # Remove event
-        timeline_gen.df = timeline_gen.df[timeline_gen.df['id'] != event_id].reset_index(drop=True)
-        
-        # Save to CSV
-        if not timeline_gen.save_data():
-            return jsonify({'error': 'Failed to save data to file'}), 500
-        
-        # Reload data to ensure consistency
-        timeline_gen.reload_data()
+        # Delete event
+        db.session.delete(event)
+        db.session.commit()
         
         return jsonify({
             'success': True,
@@ -201,6 +225,7 @@ def delete_event(event_id):
         }), 200
         
     except Exception as e:
+        db.session.rollback()
         import traceback
         return jsonify({'error': str(e), 'traceback': traceback.format_exc()}), 500
 
@@ -211,13 +236,19 @@ def list_events():
         start_year = request.args.get('start_year', type=int)
         end_year = request.args.get('end_year', type=int)
         
-        if start_year is not None and end_year is not None:
-            data = timeline_gen.get_filtered_data(start_year, end_year)
-        else:
-            data = timeline_gen.df
+        # Query database
+        query = TimelineEvent.query
         
-        # Convert to dict, handling NaN values
-        records = data.replace({pd.NA: None, pd.NaT: None}).to_dict('records')
+        # Apply year filters if provided
+        if start_year is not None:
+            query = query.filter(TimelineEvent.end_year >= start_year)
+        if end_year is not None:
+            query = query.filter(TimelineEvent.start_year <= end_year)
+        
+        events = query.all()
+        
+        # Convert to dict
+        records = [event.to_dict() for event in events]
         
         return jsonify({
             'count': len(records),
