@@ -186,10 +186,7 @@ class TimelineGenerator:
             shared_yaxes=True,
             row_heights=[0.6, 0.4],
             vertical_spacing=0.12,
-            subplot_titles=(
-                f"Numeric Year Timeline ({start_year:,} to {end_year:,})",
-                "Recent History (Calendar Dates)",
-            ),
+            subplot_titles=('', ''),  # No titles to avoid overlap
         )
         
         # -------------------
@@ -316,7 +313,7 @@ class TimelineGenerator:
         # Top x-axis: SHOW tick labels, move them to top
         fig.update_xaxes(
             range=[start_year, end_year],
-            title_text="Year (negative = BCE, very negative = deep time)",
+            title_text="",  # Removed title to avoid overlap
             showgrid=True,
             zeroline=True,
             zerolinewidth=1,
@@ -417,7 +414,7 @@ class TimelineGenerator:
             
             fig.update_xaxes(
                 range=[recent_start, recent_end],
-                title_text="Calendar Date (recent events with precise dates)",
+                title_text="",  # Removed title to avoid overlap
                 showgrid=True,
                 zeroline=True,
                 zerolinewidth=1,
@@ -431,7 +428,7 @@ class TimelineGenerator:
         else:
             # No precise dates in this window
             fig.update_xaxes(
-                title_text="Calendar Date (no precise-dated events here)",
+                title_text="",  # Removed title
                 tickangle=-30,
                 automargin=True,
                 row=2,
@@ -447,8 +444,8 @@ class TimelineGenerator:
             hovermode="closest",
             dragmode="pan",
             legend_title_text="Category",
-            title_text="World History Mega-Timeline (Years + Calendar Dates)",
-            margin=dict(t=100, b=80, l=60, r=40),
+            title_text="",  # Removed title to avoid overlap
+            margin=dict(t=40, b=80, l=60, r=40),  # Reduced top margin since no title
             # Observatory Mode: Transparent backgrounds
             paper_bgcolor='rgba(0,0,0,0)',
             plot_bgcolor='rgba(0,0,0,0)',

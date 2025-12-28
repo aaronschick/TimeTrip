@@ -199,6 +199,9 @@ async function loadTimeline(startYear, endYear) {
     hideError();
     showLoading();
     
+    // Clear any existing highlight when loading new timeline
+    clearEventHighlight();
+    
     try {
         console.log(`Loading timeline for range: ${startYear} to ${endYear}`);
         const response = await fetch(`/api/timeline?start_year=${startYear}&end_year=${endYear}`);
@@ -261,6 +264,15 @@ async function loadTimeline(startYear, endYear) {
         const midYear = (startYear + endYear) / 2;
         if (typeof setBackdropForYear === 'function') {
             setBackdropForYear(midYear);
+        }
+        
+        // If an event was selected from search, highlight it after a short delay
+        if (window.selectedEventId && window.selectedEventData) {
+            setTimeout(() => {
+                highlightEventOnTimeline(window.selectedEventId, window.selectedEventData);
+                // Clear the selection flag after highlighting
+                delete window.selectedEventId;
+            }, 800); // Delay to ensure Plotly is fully rendered and data is available
         }
         
     } catch (error) {
@@ -606,10 +618,14 @@ function selectEvent(event) {
     if (startYearInput) startYearInput.value = newStartYear;
     if (endYearInput) endYearInput.value = newEndYear;
     
+    // Store event ID for highlighting after timeline loads
+    window.selectedEventId = event.id;
+    window.selectedEventData = event;
+    
     // Reload timeline with new range
     loadTimeline(newStartYear, newEndYear).then(() => {
-        // After timeline loads, try to highlight the event
-        // Note: Plotly doesn't have a direct "scroll to point" but we can use the range we set
+        // After timeline loads, highlight the event
+        highlightEventOnTimeline(event.id, event);
         console.log(`Centered timeline on event: ${event.title} (${eventStartYear} - ${eventEndYear})`);
     });
 }
@@ -687,6 +703,9 @@ function handlePlotlyClick(data) {
         return;
     }
     
+    // Clear any existing search highlight
+    clearEventHighlight();
+    
     // Populate event details sidebar
     populateEventDetails(customdata);
 }
@@ -744,6 +763,99 @@ function populateEventDetails(eventData) {
     `;
     
     detailsContainer.innerHTML = html;
+}
+
+// Highlight an event on the timeline by ID
+function highlightEventOnTimeline(eventId, eventData) {
+    if (!timelineContainer || !eventId) return;
+    
+    const graphDiv = timelineContainer;
+    
+    // Find the trace and point that matches this event ID
+    if (!graphDiv.data) return;
+    
+    // Clear any existing highlights first
+    clearEventHighlight();
+    
+    // Search through all traces to find the point with matching ID
+    for (let traceIndex = 0; traceIndex < graphDiv.data.length; traceIndex++) {
+        const trace = graphDiv.data[traceIndex];
+        
+        if (trace.customdata && Array.isArray(trace.customdata)) {
+            for (let pointIndex = 0; pointIndex < trace.customdata.length; pointIndex++) {
+                const customdata = trace.customdata[pointIndex];
+                const pointId = Array.isArray(customdata) ? customdata[0] : (customdata?.id || null);
+                
+                if (pointId === eventId || pointId === String(eventId)) {
+                    // Found the point! Add a highlight overlay trace
+                    const x = trace.x[pointIndex];
+                    const y = trace.y[pointIndex];
+                    
+                    // Get the trace's original color for reference
+                    const originalColor = Array.isArray(trace.marker.color) 
+                        ? trace.marker.color[pointIndex] 
+                        : trace.marker.color;
+                    
+                    // Add a highlight trace (larger, gold marker on top)
+                    const highlightTrace = {
+                        x: [x],
+                        y: [y],
+                        mode: 'markers',
+                        type: 'scatter',
+                        marker: {
+                            size: 20,
+                            color: 'rgba(255, 215, 0, 1)', // Gold
+                            line: {
+                                width: 3,
+                                color: 'rgba(255, 255, 255, 1)'
+                            },
+                            symbol: 'circle',
+                            opacity: 1
+                        },
+                        showlegend: false,
+                        hoverinfo: 'skip',
+                        name: '_highlight'
+                    };
+                    
+                    // Add the highlight trace
+                    Plotly.addTraces(graphDiv, highlightTrace);
+                    
+                    // Also populate event details
+                    if (eventData) {
+                        populateEventDetails(eventData);
+                    } else if (customdata) {
+                        populateEventDetails(customdata);
+                    }
+                    
+                    // Store highlight info for clearing later
+                    window.highlightedTraceIndex = graphDiv.data.length - 1; // Last trace is the highlight
+                    window.highlightedEventId = eventId;
+                    
+                    console.log(`Highlighted event: ${eventId} at trace ${traceIndex}, point ${pointIndex}`);
+                    return;
+                }
+            }
+        }
+    }
+    
+    console.warn(`Event with ID ${eventId} not found on timeline`);
+}
+
+// Clear event highlight
+function clearEventHighlight() {
+    if (window.highlightedTraceIndex === undefined || !timelineContainer) return;
+    
+    const graphDiv = timelineContainer;
+    const traceIndex = window.highlightedTraceIndex;
+    
+    // Remove the highlight trace (it's the last one we added)
+    if (graphDiv.data && graphDiv.data[traceIndex] && graphDiv.data[traceIndex].name === '_highlight') {
+        Plotly.deleteTraces(graphDiv, traceIndex);
+    }
+    
+    // Clear highlight info
+    delete window.highlightedTraceIndex;
+    delete window.highlightedEventId;
 }
 
 // Import CSV functionality

@@ -242,10 +242,10 @@ header h1 {
     box-shadow: 0 6px 20px rgba(52, 148, 230, 0.5);
 }
 
-/* Main Content Grid */
+/* Main Content Grid - Stacked layout */
 .main-content {
-    display: grid;
-    grid-template-columns: 2fr 1fr;
+    display: flex;
+    flex-direction: column;
     gap: 20px;
     margin-bottom: 20px;
 }
@@ -620,15 +620,7 @@ header h1 {
 /* Responsive Design */
 @media (max-width: 1024px) {
     .main-content {
-        grid-template-columns: 1fr;
-    }
-    
-    .details-panel {
-        order: 2;
-    }
-    
-    .timeline-panel {
-        order: 1;
+        flex-direction: column;
     }
 }
 
