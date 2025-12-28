@@ -4,6 +4,7 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import json
 import os
+from app.clustering import get_zoom_tier, should_cluster, cluster_events
 
 # Import config - handle both direct execution and Flask app context
 Config = None
@@ -146,11 +147,16 @@ class TimelineGenerator:
         )
         return self.df[mask].copy()
     
-    def make_figure_json(self, start_year, end_year):
+    def make_figure_json(self, start_year, end_year, enable_clustering=True):
         """
         Build a dual-view timeline and return as JSON:
           - Row 1: numeric year axis (full deep-time range).
           - Row 2: real calendar dates for events that have valid start_date/end_date.
+        
+        Args:
+            start_year: Start of visible time range
+            end_year: End of visible time range
+            enable_clustering: Whether to cluster events when zoomed out (default: True)
         """
         # Filter by overlap in numeric years
         df_filtered = self.get_filtered_data(start_year, end_year)
@@ -158,6 +164,20 @@ class TimelineGenerator:
         # Debug: log how many events we have
         print(f"DEBUG: Total events in dataset: {len(self.df)}")
         print(f"DEBUG: Events in filtered range ({start_year} to {end_year}): {len(df_filtered)}")
+        
+        # Determine zoom tier and apply clustering if needed
+        time_range = end_year - start_year
+        tier = get_zoom_tier(time_range)
+        cluster_info = {}
+        
+        if enable_clustering and not df_filtered.empty:
+            should_cluster_events = should_cluster(tier, len(df_filtered), time_range)
+            if should_cluster_events:
+                print(f"DEBUG: Clustering enabled for tier {tier} (range: {time_range:,} years)")
+                df_filtered, cluster_info = cluster_events(df_filtered, start_year, end_year, tier, enable_clustering)
+                print(f"DEBUG: After clustering: {len(df_filtered)} markers (clusters + individual events)")
+            else:
+                print(f"DEBUG: Clustering not needed (tier {tier}, {len(df_filtered)} events)")
         
         # Check if we have data
         if df_filtered.empty:
@@ -182,7 +202,11 @@ class TimelineGenerator:
                 paper_bgcolor='rgba(0,0,0,0)',
                 plot_bgcolor='rgba(0,0,0,0)'
             )
-            return json.loads(fig.to_json())
+            fig_json = json.loads(fig.to_json())
+            if '_metadata' not in fig_json:
+                fig_json['_metadata'] = {}
+            fig_json['_metadata']['cluster_info'] = cluster_info
+            return fig_json
         
         # --- Subplot layout: 2 rows, shared categories on y ---
         fig = make_subplots(
@@ -197,6 +221,13 @@ class TimelineGenerator:
         # -------------------
         # Row 1: numeric years
         # -------------------
+        # Ensure 'year' column exists (needed for plotting)
+        if 'year' not in df_filtered.columns:
+            df_filtered['year'] = df_filtered.apply(
+                lambda row: (row['start_year'] + row['end_year']) / 2 if pd.notna(row.get('end_year')) and row['end_year'] != row['start_year'] else row['start_year'],
+                axis=1
+            )
+        
         # Remove rows with missing year data
         df_plot = df_filtered.dropna(subset=['year']).copy()
         
@@ -235,7 +266,11 @@ class TimelineGenerator:
                 paper_bgcolor='rgba(0,0,0,0)',
                 plot_bgcolor='rgba(0,0,0,0)'
             )
-            return json.loads(fig.to_json())
+            fig_json = json.loads(fig.to_json())
+            if '_metadata' not in fig_json:
+                fig_json['_metadata'] = {}
+            fig_json['_metadata']['cluster_info'] = cluster_info
+            return fig_json
         
         # Create scatter plot manually to ensure ALL data points are included
         # Group by category to create separate traces with proper colors
@@ -252,19 +287,30 @@ class TimelineGenerator:
             customdata_list = []
             
             for _, row in cat_data.iterrows():
+                # Check if this is a cluster
+                is_cluster = row.get('is_cluster', False)
+                
                 # Hover text
-                parts = [f"<b>{row.get('title', 'N/A')}</b>"]
-                if pd.notna(row.get('start_year')):
-                    parts.append(f"Start: {int(row['start_year']):,}")
-                if pd.notna(row.get('end_year')) and row.get('end_year') != row.get('start_year'):
-                    parts.append(f"End: {int(row['end_year']):,}")
-                if pd.notna(row.get('continent')):
-                    parts.append(f"Continent: {row['continent']}")
-                if pd.notna(row.get('description')):
-                    desc = str(row['description'])[:150]  # Limit description length
-                    if len(str(row['description'])) > 150:
-                        desc += "..."
-                    parts.append(f"<br><i>{desc}</i>")
+                if is_cluster:
+                    # Cluster hover shows count and category
+                    event_count = row.get('title', '').replace(' events', '').replace('events', '').strip()
+                    parts = [f"<b>Cluster: {row.get('title', 'N/A')}</b>"]
+                    parts.append(f"Category: {row.get('category', 'N/A')}")
+                    parts.append(f"Time: {int(row.get('start_year', 0)):,} - {int(row.get('end_year', 0)):,}")
+                    parts.append("<br><i>Click to expand and view events</i>")
+                else:
+                    parts = [f"<b>{row.get('title', 'N/A')}</b>"]
+                    if pd.notna(row.get('start_year')):
+                        parts.append(f"Start: {int(row['start_year']):,}")
+                    if pd.notna(row.get('end_year')) and row.get('end_year') != row.get('start_year'):
+                        parts.append(f"End: {int(row['end_year']):,}")
+                    if pd.notna(row.get('continent')):
+                        parts.append(f"Continent: {row['continent']}")
+                    if pd.notna(row.get('description')):
+                        desc = str(row['description'])[:150]  # Limit description length
+                        if len(str(row['description'])) > 150:
+                            desc += "..."
+                        parts.append(f"<br><i>{desc}</i>")
                 hover_templates.append("<br>".join(parts))
                 
                 # Customdata for click events: [id, title, category, continent, start_year, end_year, start_date, end_date, description, lat, lon, location_label, geometry, location_confidence]
@@ -288,6 +334,10 @@ class TimelineGenerator:
                 geometry = str(row.get('geometry', '')) if pd.notna(row.get('geometry')) else None
                 location_confidence = str(row.get('location_confidence', 'exact')) if pd.notna(row.get('location_confidence')) else 'exact'
                 
+                # Check if this is a cluster
+                is_cluster = row.get('is_cluster', False)
+                cluster_id = row.get('cluster_id', None)
+                
                 customdata_list.append([
                     str(row.get('id', '')),
                     str(row.get('title', 'Unknown')),
@@ -302,26 +352,62 @@ class TimelineGenerator:
                     float(lon) if lon is not None else None,
                     location_label,
                     geometry,
-                    location_confidence
+                    location_confidence,
+                    is_cluster,
+                    cluster_id
                 ])
             
-            # Create trace with all points for this category
-            trace = go.Scatter(
-                x=cat_data['year'].tolist(),
-                y=[str(cat)] * len(cat_data),  # All points at same y position (category)
-                mode='markers',
-                name=str(cat),
-                marker=dict(
-                    size=10,
-                    color=colors[idx % len(colors)],
-                    line=dict(width=1, color="rgba(255, 255, 255, 0.3)"),
-                    opacity=0.85
-                ),
-                text=hover_templates,
-                customdata=customdata_list,
-                hovertemplate='%{text}<br>Year: %{x:,}<extra></extra>',
-            )
-            fig.add_trace(trace, row=1, col=1)
+            # Separate clusters from individual events for different styling
+            cluster_mask = cat_data.get('is_cluster', pd.Series([False] * len(cat_data)))
+            individual_data = cat_data[~cluster_mask] if 'is_cluster' in cat_data.columns else cat_data
+            cluster_data = cat_data[cluster_mask] if 'is_cluster' in cat_data.columns else pd.DataFrame()
+            
+            # Create trace for individual events
+            if not individual_data.empty:
+                individual_indices = [i for i, is_clust in enumerate(cluster_mask) if not is_clust] if 'is_cluster' in cat_data.columns else list(range(len(cat_data)))
+                individual_hover = [hover_templates[i] for i in individual_indices]
+                individual_customdata = [customdata_list[i] for i in individual_indices]
+                
+                trace = go.Scatter(
+                    x=individual_data['year'].tolist(),
+                    y=[str(cat)] * len(individual_data),
+                    mode='markers',
+                    name=str(cat),
+                    marker=dict(
+                        size=10,
+                        color=colors[idx % len(colors)],
+                        line=dict(width=1, color="rgba(255, 255, 255, 0.3)"),
+                        opacity=0.85
+                    ),
+                    text=individual_hover,
+                    customdata=individual_customdata,
+                    hovertemplate='%{text}<br>Year: %{x:,}<extra></extra>',
+                )
+                fig.add_trace(trace, row=1, col=1)
+            
+            # Create trace for clusters (larger, different style)
+            if not cluster_data.empty:
+                cluster_indices = [i for i, is_clust in enumerate(cluster_mask) if is_clust]
+                cluster_hover = [hover_templates[i] for i in cluster_indices]
+                cluster_customdata = [customdata_list[i] for i in cluster_indices]
+                
+                cluster_trace = go.Scatter(
+                    x=cluster_data['year'].tolist(),
+                    y=[str(cat)] * len(cluster_data),
+                    mode='markers',
+                    name=f"{cat} (clusters)",
+                    marker=dict(
+                        size=16,
+                        color=colors[idx % len(colors)],
+                        line=dict(width=2, color="rgba(255, 215, 0, 0.8)"),
+                        opacity=0.9,
+                        symbol='diamond'
+                    ),
+                    text=cluster_hover,
+                    customdata=cluster_customdata,
+                    hovertemplate='%{text}<br>Year: %{x:,}<br><i>Click to expand cluster</i><extra></extra>',
+                )
+                fig.add_trace(cluster_trace, row=1, col=1)
         
         print(f"DEBUG: Number of traces added: {len(categories)}")
         print(f"DEBUG: Total data points: {len(df_plot)}")
@@ -409,6 +495,10 @@ class TimelineGenerator:
                         geometry = str(row.get('geometry', '')) if pd.notna(row.get('geometry')) else None
                         location_confidence = str(row.get('location_confidence', 'exact')) if pd.notna(row.get('location_confidence')) else 'exact'
                         
+                        # Check if this is a cluster (date traces typically won't have clusters, but check anyway)
+                        is_cluster = row.get('is_cluster', False)
+                        cluster_id = row.get('cluster_id', None)
+                        
                         trace_customdata.append([
                             str(row.get('id', '')),
                             str(row.get('title', 'Unknown')),
@@ -423,7 +513,9 @@ class TimelineGenerator:
                             float(lon) if lon is not None else None,
                             location_label,
                             geometry,
-                            location_confidence
+                            location_confidence,
+                            is_cluster,
+                            cluster_id
                         ])
                     trace.customdata = trace_customdata
                 fig.add_trace(trace, row=2, col=1)
@@ -468,6 +560,7 @@ class TimelineGenerator:
         # Hide duplicate category labels on lower y-axis
         fig.update_yaxes(showticklabels=False, row=2, col=1)
         
+        # Store cluster info in layout for frontend access
         fig.update_layout(
             template="plotly_dark",
             height=900,
@@ -515,8 +608,12 @@ class TimelineGenerator:
             row=2, col=1
         )
         
-        # Convert to JSON for frontend
-        return json.loads(fig.to_json())
+        # Convert to JSON and add cluster info to metadata
+        fig_json = json.loads(fig.to_json())
+        if '_metadata' not in fig_json:
+            fig_json['_metadata'] = {}
+        fig_json['_metadata']['cluster_info'] = cluster_info
+        return fig_json
     
     def reload_data(self):
         """Reload data from database"""

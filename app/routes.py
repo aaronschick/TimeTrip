@@ -34,6 +34,9 @@ def get_timeline():
     start_year = request.args.get('start_year', type=int, default=-5_000_000_000)
     end_year = request.args.get('end_year', type=int, default=2025)
     
+    # Get clustering parameter (default: True)
+    enable_clustering = request.args.get('enable_clustering', 'true').lower() == 'true'
+    
     # Get map filter parameters
     filter_lat = request.args.get('filter_lat', type=float)
     filter_lon = request.args.get('filter_lon', type=float)
@@ -77,7 +80,7 @@ def get_timeline():
         # Update timeline generator's filtered data
         timeline_gen.df = filtered_data
         
-        fig_json = timeline_gen.make_figure_json(start_year, end_year)
+        fig_json = timeline_gen.make_figure_json(start_year, end_year, enable_clustering=enable_clustering)
         
         # Add metadata about event count
         if 'layout' not in fig_json:

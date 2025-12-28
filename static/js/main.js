@@ -26,6 +26,11 @@ const addEventForm = document.getElementById('add-event-form');
 const eventsListContainer = document.getElementById('events-list-container');
 const importStatusContainer = document.getElementById('import-status-info');
 const importResultDiv = document.getElementById('import-result');
+const clustersToggleBtn = document.getElementById('clusters-toggle-btn');
+
+// Clustering state
+let clusteringEnabled = true;
+let clusterInfo = {};  // Store cluster info from API response
 
 // Map selection functions
 function toggleMapSelectionMode() {
@@ -280,6 +285,20 @@ function handleReset() {
     loadTimeline(DEFAULT_START_YEAR, DEFAULT_END_YEAR);
 }
 
+function toggleClustering() {
+    clusteringEnabled = !clusteringEnabled;
+    if (clustersToggleBtn) {
+        clustersToggleBtn.textContent = `Clusters: ${clusteringEnabled ? 'On' : 'Off'}`;
+        clustersToggleBtn.classList.toggle('btn-secondary', clusteringEnabled);
+        clustersToggleBtn.classList.toggle('btn-warning', !clusteringEnabled);
+    }
+    
+    // Reload timeline with new clustering setting
+    const currentStart = parseInt(startYearInput.value);
+    const currentEnd = parseInt(endYearInput.value);
+    loadTimeline(currentStart, currentEnd);
+}
+
 async function loadTimeline(startYear, endYear) {
     hideError();
     showLoading();
@@ -290,8 +309,8 @@ async function loadTimeline(startYear, endYear) {
     try {
         console.log(`Loading timeline for range: ${startYear} to ${endYear}`);
         
-        // Build URL with location filter if active
-        let url = `/api/timeline?start_year=${startYear}&end_year=${endYear}`;
+        // Build URL with location filter and clustering option
+        let url = `/api/timeline?start_year=${startYear}&end_year=${endYear}&enable_clustering=${clusteringEnabled}`;
         if (window.appState.mapFilter && window.appState.mapFilter.type === 'point') {
             url += `&filter_lat=${window.appState.mapFilter.lat}&filter_lon=${window.appState.mapFilter.lon}`;
             if (window.appState.mapFilter.radius) {
@@ -313,6 +332,13 @@ async function loadTimeline(startYear, endYear) {
             layout: figureData.layout?.title?.text || 'No title',
             metadata: figureData._metadata || 'No metadata'
         });
+        
+        // Store cluster info for expansion
+        if (figureData._metadata && figureData._metadata.cluster_info) {
+            clusterInfo = figureData._metadata.cluster_info;
+        } else {
+            clusterInfo = {};
+        }
         
         // Check if we have metadata indicating no data
         if (figureData._metadata && figureData._metadata.filtered_events === 0) {
@@ -812,7 +838,7 @@ function updateBackdropFromPlotly(eventData) {
     }
 }
 
-// Handle Plotly point click - populate event details
+// Handle Plotly point click - populate event details or expand cluster
 function handlePlotlyClick(data) {
     if (!data || !data.points || data.points.length === 0) return;
     
@@ -824,11 +850,112 @@ function handlePlotlyClick(data) {
         return;
     }
     
-    // Clear any existing search highlight
-    clearEventHighlight();
+    // Check if this is a cluster (customdata indices: 14=is_cluster, 15=cluster_id)
+    const is_cluster = customdata[14] === true || customdata[14] === 'True';
+    const cluster_id = customdata[15];
     
-    // Populate event details sidebar
-    populateEventDetails(customdata);
+    if (is_cluster && cluster_id && clusterInfo[cluster_id]) {
+        // Expand cluster by zooming into its time range
+        expandCluster(cluster_id);
+    } else {
+        // Regular event - show details
+        clearEventHighlight();
+        populateEventDetails(customdata);
+    }
+}
+
+// Expand cluster by zooming into its time range
+function expandCluster(clusterId) {
+    const cluster = clusterInfo[clusterId];
+    if (!cluster) {
+        console.warn(`Cluster ${clusterId} not found`);
+        return;
+    }
+    
+    // Calculate zoom range with some padding
+    const bucketRange = cluster.bucket_end - cluster.bucket_start;
+    const padding = bucketRange * 0.1; // 10% padding
+    const newStart = Math.floor(cluster.bucket_start - padding);
+    const newEnd = Math.ceil(cluster.bucket_end + padding);
+    
+    // Update year inputs
+    if (startYearInput) startYearInput.value = newStart;
+    if (endYearInput) endYearInput.value = newEnd;
+    
+    // Temporarily disable clustering for this zoom level
+    // (will re-enable if user zooms back out)
+    const wasClusteringEnabled = clusteringEnabled;
+    clusteringEnabled = false;
+    
+    // Reload timeline zoomed into cluster range
+    loadTimeline(newStart, newEnd).then(() => {
+        // Show cluster preview in sidebar
+        showClusterPreview(cluster);
+        
+        // Re-enable clustering after a delay (user can toggle manually)
+        setTimeout(() => {
+            if (wasClusteringEnabled) {
+                clusteringEnabled = true;
+                if (clustersToggleBtn) {
+                    clustersToggleBtn.textContent = 'Clusters: On';
+                }
+            }
+        }, 2000);
+    });
+}
+
+// Show cluster preview in event details sidebar
+function showClusterPreview(cluster) {
+    const detailsContainer = document.getElementById('event-details-content');
+    if (!detailsContainer) return;
+    
+    const events = cluster.events || [];
+    const previewCount = Math.min(10, events.length);
+    const remainingCount = events.length - previewCount;
+    
+    const eventsList = events.slice(0, previewCount).map(event => {
+        const year = event.start_year || event.end_year || 'N/A';
+        return `<div style="padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
+            <strong>${escapeHtml(event.title || 'Untitled')}</strong><br>
+            <small style="opacity: 0.7;">${formatYear(year)} | ${escapeHtml(event.category || 'N/A')}</small>
+        </div>`;
+    }).join('');
+    
+    const html = `
+        <div class="event-detail-item">
+            <div class="event-detail-label">Cluster</div>
+            <div class="event-detail-value">
+                <strong>${cluster.event_count} events</strong><br>
+                <small style="opacity: 0.7;">${formatYear(cluster.bucket_start)} - ${formatYear(cluster.bucket_end)}</small>
+            </div>
+        </div>
+        <div class="event-detail-item">
+            <div class="event-detail-label">Category</div>
+            <div class="event-detail-value">${escapeHtml(cluster.category || 'N/A')}</div>
+        </div>
+        <div class="event-detail-item">
+            <div class="event-detail-label">Events in Cluster</div>
+            <div class="event-detail-value" style="max-height: 300px; overflow-y: auto;">
+                ${eventsList}
+                ${remainingCount > 0 ? `<div style="padding: 10px 0; text-align: center; opacity: 0.7;">
+                    <em>... and ${remainingCount} more event${remainingCount > 1 ? 's' : ''}</em>
+                </div>` : ''}
+            </div>
+        </div>
+        <div class="event-detail-item">
+            <div class="event-detail-label">Status</div>
+            <div class="event-detail-value">
+                <small style="opacity: 0.7;">Timeline zoomed to cluster range. Clustering disabled for this view.</small>
+            </div>
+        </div>
+    `;
+    
+    detailsContainer.innerHTML = html;
+    
+    // Update Earth view if cluster has location info
+    if (cluster.continent) {
+        updateEarthView(cluster.continent);
+    }
 }
 
 // Continent to coordinates mapping for Google Earth

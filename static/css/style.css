@@ -244,6 +244,16 @@ header h1 {
     box-shadow: 0 6px 20px rgba(52, 148, 230, 0.5);
 }
 
+.btn-warning {
+    background: linear-gradient(135deg, rgba(255, 193, 7, 0.8) 0%, rgba(255, 152, 0, 0.8) 100%);
+    color: #ffffff;
+}
+
+.btn-warning:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 193, 7, 0.5);
+}
+
 /* Main Content Grid - Stacked layout */
 .main-content {
     display: flex;
