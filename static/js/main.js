@@ -29,6 +29,10 @@ const importResultDiv = document.getElementById('import-result');
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
+    // Initialize Observatory Mode
+    initStarfield('starfield');
+    initBackdrops();
+    
     // Ensure modals are hidden on page load
     if (addEventModal) hideModal(addEventModal);
     if (manageEventsModal) hideModal(manageEventsModal);
@@ -242,13 +246,22 @@ async function loadTimeline(startYear, endYear) {
         // Render Plotly figure
         Plotly.newPlot(timelineContainer, figureData.data, figureData.layout, {
             responsive: true,
-            displayModeBar: true,
+            displayModeBar: 'hover',
             modeBarButtonsToRemove: ['lasso2d', 'select2d'],
         });
         
         currentFigure = figureData;
         console.log('Timeline rendered successfully');
         hideLoading();
+        
+        // Wire up Plotly events for Observatory Mode
+        wireUpPlotlyEvents();
+        
+        // Set initial backdrop based on current year range
+        const midYear = (startYear + endYear) / 2;
+        if (typeof setBackdropForYear === 'function') {
+            setBackdropForYear(midYear);
+        }
         
     } catch (error) {
         console.error('Error loading timeline:', error);
@@ -613,6 +626,124 @@ function hideSearchResults() {
     }
     selectedSearchIndex = -1;
     currentSearchResults = [];
+}
+
+// Observatory Mode: Wire up Plotly events
+function wireUpPlotlyEvents() {
+    if (!timelineContainer) return;
+    
+    const graphDiv = timelineContainer;
+    
+    // Handle relayout (pan/zoom) - update backdrop
+    graphDiv.on('plotly_relayout', (eventData) => {
+        updateBackdropFromPlotly(eventData);
+    });
+    
+    // Handle click - show event details
+    graphDiv.on('plotly_click', (data) => {
+        handlePlotlyClick(data);
+    });
+}
+
+// Update backdrop based on visible time range
+function updateBackdropFromPlotly(eventData) {
+    if (!timelineContainer) return;
+    
+    const graphDiv = timelineContainer;
+    let startYear, endYear;
+    
+    // Try to get range from relayout event data
+    if (eventData && eventData['xaxis.range[0]'] !== undefined) {
+        startYear = eventData['xaxis.range[0]'];
+        endYear = eventData['xaxis.range[1]'];
+    } else if (graphDiv.layout && graphDiv.layout.xaxis && graphDiv.layout.xaxis.range) {
+        // Fallback to layout
+        startYear = graphDiv.layout.xaxis.range[0];
+        endYear = graphDiv.layout.xaxis.range[1];
+    } else {
+        // Fallback to current input values
+        startYear = parseInt(startYearInput.value);
+        endYear = parseInt(endYearInput.value);
+    }
+    
+    // Calculate midpoint year
+    const midYear = (startYear + endYear) / 2;
+    
+    // Update backdrop
+    if (typeof setBackdropForYear === 'function') {
+        setBackdropForYear(midYear);
+    }
+}
+
+// Handle Plotly point click - populate event details
+function handlePlotlyClick(data) {
+    if (!data || !data.points || data.points.length === 0) return;
+    
+    const point = data.points[0];
+    const customdata = point.customdata;
+    
+    if (!customdata) {
+        console.warn('No customdata found for clicked point');
+        return;
+    }
+    
+    // Populate event details sidebar
+    populateEventDetails(customdata);
+}
+
+// Populate event details sidebar
+function populateEventDetails(eventData) {
+    const detailsContainer = document.getElementById('event-details-content');
+    if (!detailsContainer) return;
+    
+    // Parse customdata (it might be an array or object)
+    let event = eventData;
+    if (Array.isArray(eventData)) {
+        // If it's an array, assume it's [id, title, category, continent, start_year, end_year, start_date, end_date, description]
+        event = {
+            id: eventData[0] || null,
+            title: eventData[1] || 'Unknown',
+            category: eventData[2] || 'N/A',
+            continent: eventData[3] || 'N/A',
+            start_year: eventData[4] || null,
+            end_year: eventData[5] || null,
+            start_date: eventData[6] || null,
+            end_date: eventData[7] || null,
+            description: eventData[8] || null
+        };
+    }
+    
+    // Build HTML
+    const html = `
+        <div class="event-detail-item">
+            <div class="event-detail-label">Title</div>
+            <div class="event-detail-value">${escapeHtml(event.title || 'Unknown')}</div>
+        </div>
+        <div class="event-detail-item">
+            <div class="event-detail-label">Category</div>
+            <div class="event-detail-value">${escapeHtml(event.category || 'N/A')}</div>
+        </div>
+        <div class="event-detail-item">
+            <div class="event-detail-label">Continent</div>
+            <div class="event-detail-value">${escapeHtml(event.continent || 'N/A')}</div>
+        </div>
+        <div class="event-detail-item">
+            <div class="event-detail-label">Time Period</div>
+            <div class="event-detail-value">
+                ${formatYear(event.start_year)} - ${formatYear(event.end_year || event.start_year)}
+                ${event.start_date ? `<br><small style="opacity: 0.7;">${escapeHtml(event.start_date)}</small>` : ''}
+                ${event.end_date && event.end_date !== event.start_date ? `<br><small style="opacity: 0.7;">to ${escapeHtml(event.end_date)}</small>` : ''}
+            </div>
+        </div>
+        ${event.description ? `
+        <div class="event-detail-item">
+            <div class="event-detail-label">Description</div>
+            <div class="event-detail-description">${escapeHtml(event.description)}</div>
+        </div>
+        ` : ''}
+    `;
+    
+    detailsContainer.innerHTML = html;
 }
 
 // Import CSV functionality

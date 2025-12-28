@@ -171,7 +171,12 @@ class TimelineGenerator:
                 showarrow=False,
                 font=dict(size=14)
             )
-            fig.update_layout(template="plotly_dark", height=400)
+            fig.update_layout(
+                template="plotly_dark", 
+                height=400,
+                paper_bgcolor='rgba(0,0,0,0)',
+                plot_bgcolor='rgba(0,0,0,0)'
+            )
             return json.loads(fig.to_json())
         
         # --- Subplot layout: 2 rows, shared categories on y ---
@@ -222,7 +227,12 @@ class TimelineGenerator:
                 showarrow=False,
                 font=dict(size=14)
             )
-            fig.update_layout(template="plotly_dark", height=400)
+            fig.update_layout(
+                template="plotly_dark", 
+                height=400,
+                paper_bgcolor='rgba(0,0,0,0)',
+                plot_bgcolor='rgba(0,0,0,0)'
+            )
             return json.loads(fig.to_json())
         
         # Create scatter plot manually to ensure ALL data points are included
@@ -235,9 +245,12 @@ class TimelineGenerator:
         for idx, cat in enumerate(categories):
             cat_data = df_plot[df_plot['category'] == cat]
             
-            # Prepare hover text with all information for each point
+            # Prepare hover text and customdata for each point
             hover_templates = []
+            customdata_list = []
+            
             for _, row in cat_data.iterrows():
+                # Hover text
                 parts = [f"<b>{row.get('title', 'N/A')}</b>"]
                 if pd.notna(row.get('start_year')):
                     parts.append(f"Start: {int(row['start_year']):,}")
@@ -251,6 +264,32 @@ class TimelineGenerator:
                         desc += "..."
                     parts.append(f"<br><i>{desc}</i>")
                 hover_templates.append("<br>".join(parts))
+                
+                # Customdata for click events: [id, title, category, continent, start_year, end_year, start_date, end_date, description]
+                start_date_str = None
+                end_date_str = None
+                if pd.notna(row.get('start_date')):
+                    try:
+                        start_date_str = row['start_date'].strftime('%Y-%m-%d') if hasattr(row['start_date'], 'strftime') else str(row['start_date'])
+                    except:
+                        start_date_str = None
+                if pd.notna(row.get('end_date')):
+                    try:
+                        end_date_str = row['end_date'].strftime('%Y-%m-%d') if hasattr(row['end_date'], 'strftime') else str(row['end_date'])
+                    except:
+                        end_date_str = None
+                
+                customdata_list.append([
+                    str(row.get('id', '')),
+                    str(row.get('title', 'Unknown')),
+                    str(row.get('category', 'N/A')),
+                    str(row.get('continent', 'N/A')),
+                    int(row['start_year']) if pd.notna(row.get('start_year')) else None,
+                    int(row['end_year']) if pd.notna(row.get('end_year')) else None,
+                    start_date_str,
+                    end_date_str,
+                    str(row.get('description', '')) if pd.notna(row.get('description')) else ''
+                ])
             
             # Create trace with all points for this category
             trace = go.Scatter(
@@ -259,12 +298,13 @@ class TimelineGenerator:
                 mode='markers',
                 name=str(cat),
                 marker=dict(
-                    size=8,
+                    size=10,
                     color=colors[idx % len(colors)],
-                    line=dict(width=1, color="black"),
-                    opacity=0.8
+                    line=dict(width=1, color="rgba(255, 255, 255, 0.3)"),
+                    opacity=0.85
                 ),
                 text=hover_templates,
+                customdata=customdata_list,
                 hovertemplate='%{text}<br>Year: %{x:,}<extra></extra>',
             )
             fig.add_trace(trace, row=1, col=1)
@@ -279,8 +319,8 @@ class TimelineGenerator:
             title_text="Year (negative = BCE, very negative = deep time)",
             showgrid=True,
             zeroline=True,
-            zerolinewidth=2,
-            zerolinecolor="white",
+            zerolinewidth=1,
+            zerolinecolor="rgba(255, 255, 255, 0.2)",
             type="linear",
             showticklabels=True,
             side="top",
@@ -326,7 +366,39 @@ class TimelineGenerator:
             
             for trace in fig_dates.data:
                 trace.showlegend = False  # legend already shown from top plot
-                trace.marker.update(size=8, line=dict(width=1, color="black"))
+                trace.marker.update(size=10, line=dict(width=1, color="rgba(255, 255, 255, 0.3)"))
+                # Add customdata to date traces as well
+                if hasattr(trace, 'customdata') and trace.customdata:
+                    # Keep existing customdata if present
+                    pass
+                else:
+                    # Create customdata from the dataframe
+                    trace_customdata = []
+                    for _, row in df_recent.iterrows():
+                        start_date_str = None
+                        end_date_str = None
+                        if pd.notna(row.get('start_date')):
+                            try:
+                                start_date_str = row['start_date'].strftime('%Y-%m-%d') if hasattr(row['start_date'], 'strftime') else str(row['start_date'])
+                            except:
+                                start_date_str = None
+                        if pd.notna(row.get('end_date')):
+                            try:
+                                end_date_str = row['end_date'].strftime('%Y-%m-%d') if hasattr(row['end_date'], 'strftime') else str(row['end_date'])
+                            except:
+                                end_date_str = None
+                        trace_customdata.append([
+                            str(row.get('id', '')),
+                            str(row.get('title', 'Unknown')),
+                            str(row.get('category', 'N/A')),
+                            str(row.get('continent', 'N/A')),
+                            int(row['start_year']) if pd.notna(row.get('start_year')) else None,
+                            int(row['end_year']) if pd.notna(row.get('end_year')) else None,
+                            start_date_str,
+                            end_date_str,
+                            str(row.get('description', '')) if pd.notna(row.get('description')) else ''
+                        ])
+                    trace.customdata = trace_customdata
                 fig.add_trace(trace, row=2, col=1)
             
             # Set date-axis range based on requested year window & what's available
@@ -348,8 +420,8 @@ class TimelineGenerator:
                 title_text="Calendar Date (recent events with precise dates)",
                 showgrid=True,
                 zeroline=True,
-                zerolinewidth=2,
-                zerolinecolor="white",
+                zerolinewidth=1,
+                zerolinecolor="rgba(255, 255, 255, 0.2)",
                 type="date",
                 tickangle=-30,
                 automargin=True,
@@ -377,6 +449,43 @@ class TimelineGenerator:
             legend_title_text="Category",
             title_text="World History Mega-Timeline (Years + Calendar Dates)",
             margin=dict(t=100, b=80, l=60, r=40),
+            # Observatory Mode: Transparent backgrounds
+            paper_bgcolor='rgba(0,0,0,0)',
+            plot_bgcolor='rgba(0,0,0,0)',
+            font=dict(
+                family="'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
+                size=12,
+                color='rgba(255, 255, 255, 0.9)'
+            ),
+            hoverlabel=dict(
+                bgcolor='rgba(0, 0, 0, 0.8)',
+                bordercolor='rgba(255, 255, 255, 0.3)',
+                font_size=13
+            )
+        )
+        
+        # Update axes for Observatory Mode styling
+        fig.update_xaxes(
+            gridcolor='rgba(255, 255, 255, 0.1)',
+            zerolinecolor='rgba(255, 255, 255, 0.2)',
+            showline=False,
+            row=1, col=1
+        )
+        fig.update_xaxes(
+            gridcolor='rgba(255, 255, 255, 0.1)',
+            zerolinecolor='rgba(255, 255, 255, 0.2)',
+            showline=False,
+            row=2, col=1
+        )
+        fig.update_yaxes(
+            gridcolor='rgba(255, 255, 255, 0.05)',
+            showline=False,
+            row=1, col=1
+        )
+        fig.update_yaxes(
+            gridcolor='rgba(255, 255, 255, 0.05)',
+            showline=False,
+            row=2, col=1
         )
         
         # Convert to JSON for frontend
