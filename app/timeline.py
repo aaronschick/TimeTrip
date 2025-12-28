@@ -6,13 +6,22 @@ import json
 import os
 
 # Import config - handle both direct execution and Flask app context
+Config = None
 try:
     from config import Config
 except ImportError:
     # If running as module, add parent to path
     import sys
     sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    from config import Config
+    try:
+        from config import Config
+    except ImportError:
+        # Create a minimal Config if import fails
+        class Config:
+            RECENT_MIN_YEAR = 1678
+            RECENT_MAX_YEAR = 2262
+            CATEGORY_ORDER = ["era", "migration", "civilization", "empire", "war", "religion", "biblical"]
+            TIMELINE_DATA_FILE = "timeline_data_4.csv"
 
 class TimelineGenerator:
     """Generates timeline visualizations from database"""
@@ -21,8 +30,13 @@ class TimelineGenerator:
         """Initialize with database session"""
         self.db_session = db_session
         self.df = None
-        self.RECENT_MIN_YEAR = Config.RECENT_MIN_YEAR
-        self.RECENT_MAX_YEAR = Config.RECENT_MAX_YEAR
+        try:
+            self.RECENT_MIN_YEAR = Config.RECENT_MIN_YEAR
+            self.RECENT_MAX_YEAR = Config.RECENT_MAX_YEAR
+        except (NameError, AttributeError):
+            # Fallback values if Config is not available
+            self.RECENT_MIN_YEAR = 1678
+            self.RECENT_MAX_YEAR = 2262
         self._load_data()
         
     def _load_data(self):
@@ -30,14 +44,14 @@ class TimelineGenerator:
         if self.db_session is None:
             # Fallback: try to load from CSV if database not available
             try:
-                from config import Config
                 csv_path = Config.TIMELINE_DATA_FILE
                 if os.path.exists(csv_path):
                     df = pd.read_csv(csv_path)
                     df = df.dropna(axis=1, how='all')
                 else:
                     df = pd.DataFrame()
-            except:
+            except Exception as e:
+                print(f"Error loading CSV fallback: {e}")
                 df = pd.DataFrame()
         else:
             # Load from database
@@ -94,16 +108,22 @@ class TimelineGenerator:
         
         # Category order - include all categories found in data, not just predefined ones
         if "category" in df.columns and not df.empty:
-            # Get all unique categories from the data
-            data_categories = df["category"].dropna().unique().tolist()
-            # Combine with predefined order, keeping order but adding any missing categories
-            all_categories = [cat for cat in Config.CATEGORY_ORDER if cat in data_categories]
-            # Add any categories in data that aren't in the predefined order
-            for cat in data_categories:
-                if cat not in all_categories:
-                    all_categories.append(cat)
-            # Set as categorical with all categories
-            df["category"] = pd.Categorical(df["category"], categories=all_categories, ordered=True)
+            try:
+                # Get all unique categories from the data
+                data_categories = df["category"].dropna().unique().tolist()
+                # Combine with predefined order, keeping order but adding any missing categories
+                category_order = getattr(Config, 'CATEGORY_ORDER', ["era", "migration", "civilization", "empire", "war", "religion", "biblical"])
+                all_categories = [cat for cat in category_order if cat in data_categories]
+                # Add any categories in data that aren't in the predefined order
+                for cat in data_categories:
+                    if cat not in all_categories:
+                        all_categories.append(cat)
+                # Set as categorical with all categories
+                df["category"] = pd.Categorical(df["category"], categories=all_categories, ordered=True)
+            except Exception as e:
+                print(f"Error setting category order: {e}")
+                # If categorical fails, just keep as string
+                pass
         
         self.df = df
     
