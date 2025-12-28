@@ -130,6 +130,8 @@ header h1 {
     justify-content: center;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
     border: 1px solid rgba(255, 255, 255, 0.15);
+    position: relative;
+    z-index: 10001;
 }
 
 .control-group {
@@ -267,12 +269,23 @@ header h1 {
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1);
     border: 1px solid rgba(255, 255, 255, 0.15);
     min-height: 600px;
+    position: relative;
+    z-index: 1;
 }
 
 #timeline-container {
     background: transparent;
     border-radius: 8px;
     min-height: 600px;
+    position: relative;
+    z-index: 1;
+}
+
+/* Ensure Plotly chart doesn't create a new stacking context that interferes */
+#timeline-container .js-plotly-plot,
+#timeline-container .plotly {
+    position: relative;
+    z-index: 1;
 }
 
 /* Details Panel - Glass Card */
@@ -399,10 +412,16 @@ header h1 {
 /* Search Container - Ensure proper positioning context */
 .search-container {
     position: relative;
-    z-index: 10001;
+    z-index: 10002;
 }
 
-/* Search Results Dropdown */
+.search-group {
+    position: relative;
+    min-width: 300px;
+    z-index: 10002;
+}
+
+/* Search Results Dropdown - Must be above everything */
 .search-results {
     position: absolute;
     top: 100%;
@@ -416,7 +435,7 @@ header h1 {
     margin-top: 5px;
     max-height: 300px;
     overflow-y: auto;
-    z-index: 10000;
+    z-index: 10003 !important;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
 }
 
