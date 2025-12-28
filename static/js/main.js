@@ -24,40 +24,72 @@ const eventsListContainer = document.getElementById('events-list-container');
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
+    // Ensure modals are hidden on page load
+    if (addEventModal) hideModal(addEventModal);
+    if (manageEventsModal) hideModal(manageEventsModal);
+    
+    // Load timeline
     loadTimeline(DEFAULT_START_YEAR, DEFAULT_END_YEAR);
     
-    updateBtn.addEventListener('click', handleUpdate);
-    resetBtn.addEventListener('click', handleReset);
-    addEventBtn.addEventListener('click', () => showModal(addEventModal));
-    manageEventsBtn.addEventListener('click', () => {
-        showModal(manageEventsModal);
-        loadEventsList();
-    });
+    // Button handlers
+    if (updateBtn) updateBtn.addEventListener('click', handleUpdate);
+    if (resetBtn) resetBtn.addEventListener('click', handleReset);
+    if (addEventBtn) addEventBtn.addEventListener('click', () => showModal(addEventModal));
+    if (manageEventsBtn) {
+        manageEventsBtn.addEventListener('click', () => {
+            showModal(manageEventsModal);
+            loadEventsList();
+        });
+    }
     
     // Modal close handlers
-    document.getElementById('close-add-modal').addEventListener('click', () => hideModal(addEventModal));
-    document.getElementById('close-manage-modal').addEventListener('click', () => hideModal(manageEventsModal));
-    document.getElementById('cancel-add-event').addEventListener('click', () => hideModal(addEventModal));
+    const closeAddModal = document.getElementById('close-add-modal');
+    const closeManageModal = document.getElementById('close-manage-modal');
+    const cancelAddEvent = document.getElementById('cancel-add-event');
+    
+    if (closeAddModal) closeAddModal.addEventListener('click', () => hideModal(addEventModal));
+    if (closeManageModal) closeManageModal.addEventListener('click', () => hideModal(manageEventsModal));
+    if (cancelAddEvent) cancelAddEvent.addEventListener('click', () => hideModal(addEventModal));
     
     // Close modals when clicking outside
-    addEventModal.addEventListener('click', (e) => {
-        if (e.target === addEventModal) hideModal(addEventModal);
-    });
-    manageEventsModal.addEventListener('click', (e) => {
-        if (e.target === manageEventsModal) hideModal(manageEventsModal);
+    if (addEventModal) {
+        addEventModal.addEventListener('click', (e) => {
+            if (e.target === addEventModal) hideModal(addEventModal);
+        });
+    }
+    if (manageEventsModal) {
+        manageEventsModal.addEventListener('click', (e) => {
+            if (e.target === manageEventsModal) hideModal(manageEventsModal);
+        });
+    }
+    
+    // Close modals with Escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            if (addEventModal && !addEventModal.classList.contains('hidden')) {
+                hideModal(addEventModal);
+            }
+            if (manageEventsModal && !manageEventsModal.classList.contains('hidden')) {
+                hideModal(manageEventsModal);
+            }
+        }
     });
     
     // Form submission
-    addEventForm.addEventListener('submit', handleAddEvent);
+    if (addEventForm) addEventForm.addEventListener('submit', handleAddEvent);
     
     // Allow Enter key to trigger update
-    startYearInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') handleUpdate();
-    });
+    if (startYearInput) {
+        startYearInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') handleUpdate();
+        });
+    }
     
-    endYearInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') handleUpdate();
-    });
+    if (endYearInput) {
+        endYearInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') handleUpdate();
+        });
+    }
 });
 
 function handleUpdate() {
@@ -151,12 +183,23 @@ function hideError() {
 
 // Modal functions
 function showModal(modal) {
-    modal.classList.remove('hidden');
+    if (modal) {
+        modal.classList.remove('hidden');
+        // Prevent body scroll when modal is open
+        document.body.style.overflow = 'hidden';
+    }
 }
 
 function hideModal(modal) {
-    modal.classList.add('hidden');
+    if (modal) {
+        modal.classList.add('hidden');
+        // Restore body scroll
+        document.body.style.overflow = '';
+    }
 }
+
+// Make hideModal available globally for error handlers
+window.hideModal = hideModal;
 
 // Add Event functionality
 async function handleAddEvent(e) {
@@ -224,10 +267,19 @@ async function loadEventsList() {
         const currentStart = parseInt(startYearInput.value);
         const currentEnd = parseInt(endYearInput.value);
         
-        const response = await fetch(`/api/events?start_year=${currentStart}&end_year=${currentEnd}`);
+        // Add timeout to prevent hanging
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+        
+        const response = await fetch(`/api/events?start_year=${currentStart}&end_year=${currentEnd}`, {
+            signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
         
         if (!response.ok) {
-            throw new Error('Failed to load events');
+            const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+            throw new Error(errorData.error || `HTTP ${response.status}: Failed to load events`);
         }
         
         const result = await response.json();
@@ -259,7 +311,20 @@ async function loadEventsList() {
         
     } catch (error) {
         console.error('Error loading events:', error);
-        eventsListContainer.innerHTML = `<div class="error">Error loading events: ${error.message}</div>`;
+        let errorMessage = 'Error loading events: ';
+        if (error.name === 'AbortError') {
+            errorMessage += 'Request timed out. The database may not be connected.';
+        } else {
+            errorMessage += error.message || 'Unknown error occurred';
+        }
+        eventsListContainer.innerHTML = `
+            <div class="error">
+                ${errorMessage}
+                <br><br>
+                <button class="btn-secondary" onclick="loadEventsList()">Retry</button>
+                <button class="btn-secondary" onclick="hideModal(manageEventsModal)">Close</button>
+            </div>
+        `;
     }
 }
 

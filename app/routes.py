@@ -15,6 +15,7 @@ except ImportError:
 
 from app.timeline import TimelineGenerator
 from app.models import db, TimelineEvent
+from sqlalchemy import text
 
 bp = Blueprint('main', __name__)
 
@@ -236,6 +237,16 @@ def list_events():
         start_year = request.args.get('start_year', type=int)
         end_year = request.args.get('end_year', type=int)
         
+        # Check database connection
+        try:
+            db.session.execute(text('SELECT 1'))
+        except Exception as db_error:
+            return jsonify({
+                'error': 'Database connection failed',
+                'message': str(db_error),
+                'hint': 'Please ensure DATABASE_URL is set correctly and the database is accessible.'
+            }), 503
+        
         # Query database
         query = TimelineEvent.query
         
@@ -256,5 +267,9 @@ def list_events():
         })
     except Exception as e:
         import traceback
-        return jsonify({'error': str(e), 'traceback': traceback.format_exc()}), 500
+        db.session.rollback()
+        return jsonify({
+            'error': str(e),
+            'traceback': traceback.format_exc()
+        }), 500
 

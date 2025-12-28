@@ -177,7 +177,14 @@ header h1 {
 }
 
 .hidden {
-    display: none;
+    display: none !important;
+}
+
+/* Ensure modal is hidden by default */
+.modal.hidden {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
 }
 
 /* Modal Styles */
