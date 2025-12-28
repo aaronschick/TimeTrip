@@ -273,3 +273,142 @@ def list_events():
             'traceback': traceback.format_exc()
         }), 500
 
+@bp.route('/api/import-csv', methods=['POST'])
+def import_csv():
+    """Import events from CSV file into database"""
+    try:
+        from config import Config
+        import pandas as pd
+        from datetime import datetime
+        
+        csv_path = Config.TIMELINE_DATA_FILE
+        
+        # Check if file exists
+        if not os.path.exists(csv_path):
+            return jsonify({
+                'error': f'CSV file not found at {csv_path}',
+                'hint': 'Make sure timeline_data_4.csv is in the repository root'
+            }), 404
+        
+        # Check if data already exists
+        existing_count = TimelineEvent.query.count()
+        if existing_count > 0:
+            # Check if user wants to overwrite (for web interface, we'll append by default)
+            # Or we can clear first - let's make it optional via query param
+            clear_existing = request.args.get('clear', 'false').lower() == 'true'
+            if clear_existing:
+                TimelineEvent.query.delete()
+                db.session.commit()
+        
+        # Read CSV
+        df = pd.read_csv(csv_path)
+        df = df.dropna(axis=1, how='all')  # Remove empty columns
+        
+        imported = 0
+        skipped = 0
+        errors = []
+        
+        for idx, row in df.iterrows():
+            try:
+                # Skip rows with missing required fields
+                if pd.isna(row.get('id')) or pd.isna(row.get('title')) or pd.isna(row.get('start_year')):
+                    skipped += 1
+                    continue
+                
+                # Check if event already exists
+                event_id = str(row['id']).strip()
+                existing = TimelineEvent.query.filter_by(id=event_id).first()
+                if existing:
+                    skipped += 1
+                    continue
+                
+                # Parse dates
+                start_date = None
+                end_date = None
+                
+                if 'start_date' in row and pd.notna(row['start_date']):
+                    try:
+                        start_date = pd.to_datetime(row['start_date'], errors='coerce')
+                        if pd.notna(start_date):
+                            start_date = start_date.date()
+                        else:
+                            start_date = None
+                    except:
+                        start_date = None
+                
+                if 'end_date' in row and pd.notna(row['end_date']):
+                    try:
+                        end_date = pd.to_datetime(row['end_date'], errors='coerce')
+                        if pd.notna(end_date):
+                            end_date = end_date.date()
+                        else:
+                            end_date = None
+                    except:
+                        end_date = None
+                
+                # Create event
+                event = TimelineEvent(
+                    id=event_id,
+                    title=str(row['title']).strip(),
+                    category=str(row.get('category', 'other')).strip(),
+                    continent=str(row.get('continent', 'Global')).strip(),
+                    start_year=int(row['start_year']),
+                    end_year=int(row.get('end_year', row['start_year'])),
+                    description=str(row.get('description', '')).strip() if pd.notna(row.get('description')) else None,
+                    start_date=start_date,
+                    end_date=end_date
+                )
+                
+                db.session.add(event)
+                imported += 1
+                
+                # Commit in batches
+                if imported % 50 == 0:
+                    db.session.commit()
+                    
+            except Exception as e:
+                errors.append(f"Row {idx + 2} (ID: {row.get('id', 'unknown')}): {str(e)}")
+                skipped += 1
+                continue
+        
+        # Final commit
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': 'CSV import completed',
+            'imported': imported,
+            'skipped': skipped,
+            'errors': errors[:10] if errors else [],  # Limit errors shown
+            'total_errors': len(errors)
+        }), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        import traceback
+        return jsonify({
+            'error': str(e),
+            'traceback': traceback.format_exc()
+        }), 500
+
+@bp.route('/api/import-status', methods=['GET'])
+def import_status():
+    """Check import status - how many events are in the database"""
+    try:
+        total_events = TimelineEvent.query.count()
+        from config import Config
+        csv_exists = os.path.exists(Config.TIMELINE_DATA_FILE)
+        
+        return jsonify({
+            'total_events': total_events,
+            'csv_file_exists': csv_exists,
+            'csv_file_path': Config.TIMELINE_DATA_FILE if csv_exists else None,
+            'database_connected': True
+        })
+    except Exception as e:
+        return jsonify({
+            'total_events': 0,
+            'error': str(e),
+            'database_connected': False
+        }), 500
+

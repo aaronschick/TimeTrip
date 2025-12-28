@@ -19,8 +19,11 @@ const errorDiv = document.getElementById('error');
 // Modal elements
 const addEventModal = document.getElementById('add-event-modal');
 const manageEventsModal = document.getElementById('manage-events-modal');
+const importCsvModal = document.getElementById('import-csv-modal');
 const addEventForm = document.getElementById('add-event-form');
 const eventsListContainer = document.getElementById('events-list-container');
+const importStatusContainer = document.getElementById('import-status-info');
+const importResultDiv = document.getElementById('import-result');
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
@@ -41,15 +44,26 @@ document.addEventListener('DOMContentLoaded', () => {
             loadEventsList();
         });
     }
+    const importCsvBtnHeader = document.getElementById('import-csv-btn-header');
+    if (importCsvBtnHeader) {
+        importCsvBtnHeader.addEventListener('click', () => {
+            showModal(importCsvModal);
+            checkImportStatus();
+        });
+    }
     
     // Modal close handlers
     const closeAddModal = document.getElementById('close-add-modal');
     const closeManageModal = document.getElementById('close-manage-modal');
+    const closeImportModal = document.getElementById('close-import-modal');
     const cancelAddEvent = document.getElementById('cancel-add-event');
+    const cancelImport = document.getElementById('cancel-import');
     
     if (closeAddModal) closeAddModal.addEventListener('click', () => hideModal(addEventModal));
     if (closeManageModal) closeManageModal.addEventListener('click', () => hideModal(manageEventsModal));
+    if (closeImportModal) closeImportModal.addEventListener('click', () => hideModal(importCsvModal));
     if (cancelAddEvent) cancelAddEvent.addEventListener('click', () => hideModal(addEventModal));
+    if (cancelImport) cancelImport.addEventListener('click', () => hideModal(importCsvModal));
     
     // Close modals when clicking outside
     if (addEventModal) {
@@ -62,6 +76,11 @@ document.addEventListener('DOMContentLoaded', () => {
             if (e.target === manageEventsModal) hideModal(manageEventsModal);
         });
     }
+    if (importCsvModal) {
+        importCsvModal.addEventListener('click', (e) => {
+            if (e.target === importCsvModal) hideModal(importCsvModal);
+        });
+    }
     
     // Close modals with Escape key
     document.addEventListener('keydown', (e) => {
@@ -72,8 +91,17 @@ document.addEventListener('DOMContentLoaded', () => {
             if (manageEventsModal && !manageEventsModal.classList.contains('hidden')) {
                 hideModal(manageEventsModal);
             }
+            if (importCsvModal && !importCsvModal.classList.contains('hidden')) {
+                hideModal(importCsvModal);
+            }
         }
     });
+    
+    // Import CSV handlers
+    const importCsvBtn = document.getElementById('import-csv-btn');
+    const importCsvClearBtn = document.getElementById('import-csv-clear-btn');
+    if (importCsvBtn) importCsvBtn.addEventListener('click', () => importCsv(false));
+    if (importCsvClearBtn) importCsvClearBtn.addEventListener('click', () => importCsv(true));
     
     // Form submission
     if (addEventForm) addEventForm.addEventListener('submit', handleAddEvent);
@@ -392,4 +420,103 @@ function showSuccess(message) {
 
 // Make deleteEvent available globally for onclick handlers
 window.deleteEvent = deleteEvent;
+
+// Import CSV functionality
+async function checkImportStatus() {
+    try {
+        if (!importStatusContainer) return;
+        
+        importStatusContainer.innerHTML = '<div class="loading">Checking status...</div>';
+        
+        const response = await fetch('/api/import-status');
+        const result = await response.json();
+        
+        if (result.error) {
+            importStatusContainer.innerHTML = `<div class="error">Error: ${result.error}</div>`;
+            return;
+        }
+        
+        let statusHtml = `
+            <div style="padding: 15px; background: rgba(255,255,255,0.1); border-radius: 8px; margin-bottom: 15px;">
+                <strong>Current Status:</strong><br>
+                Events in database: <strong>${result.total_events}</strong><br>
+                CSV file: ${result.csv_file_exists ? '✓ Found' : '✗ Not found'}
+            </div>
+        `;
+        
+        if (result.total_events === 0) {
+            statusHtml += '<p style="color: #ffd700;">⚠️ No events in database. Click "Import CSV" to import from timeline_data_4.csv</p>';
+        } else {
+            statusHtml += `<p style="color: #6cff87;">✓ Database has ${result.total_events} events. You can add more or clear and re-import.</p>`;
+        }
+        
+        importStatusContainer.innerHTML = statusHtml;
+        
+    } catch (error) {
+        console.error('Error checking import status:', error);
+        if (importStatusContainer) {
+            importStatusContainer.innerHTML = `<div class="error">Error checking status: ${error.message}</div>`;
+        }
+    }
+}
+
+async function importCsv(clearExisting = false) {
+    try {
+        if (!importResultDiv) return;
+        
+        importResultDiv.innerHTML = '<div class="loading">Importing CSV data...</div>';
+        
+        const url = clearExisting ? '/api/import-csv?clear=true' : '/api/import-csv';
+        const response = await fetch(url, {
+            method: 'POST'
+        });
+        
+        const result = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(result.error || 'Import failed');
+        }
+        
+        let resultHtml = `
+            <div style="padding: 15px; background: rgba(40, 167, 69, 0.2); border: 1px solid rgba(40, 167, 69, 0.5); border-radius: 8px; color: #6cff87;">
+                <strong>✓ Import Complete!</strong><br>
+                Imported: <strong>${result.imported}</strong> events<br>
+                Skipped: ${result.skipped} events
+        `;
+        
+        if (result.total_errors > 0) {
+            resultHtml += `<br>Errors: ${result.total_errors}`;
+            if (result.errors && result.errors.length > 0) {
+                resultHtml += '<ul style="margin-top: 10px; font-size: 0.9em;">';
+                result.errors.forEach(err => {
+                    resultHtml += `<li>${escapeHtml(err)}</li>`;
+                });
+                resultHtml += '</ul>';
+            }
+        }
+        
+        resultHtml += '</div>';
+        
+        importResultDiv.innerHTML = resultHtml;
+        
+        // Refresh status and events list
+        await checkImportStatus();
+        
+        // Reload timeline
+        const currentStart = parseInt(startYearInput.value);
+        const currentEnd = parseInt(endYearInput.value);
+        await loadTimeline(currentStart, currentEnd);
+        
+        // If manage events modal is open, refresh it
+        if (manageEventsModal && !manageEventsModal.classList.contains('hidden')) {
+            await loadEventsList();
+        }
+        
+    } catch (error) {
+        console.error('Error importing CSV:', error);
+        if (importResultDiv) {
+            importResultDiv.innerHTML = `<div class="error">Error importing CSV: ${error.message}</div>`;
+        }
+    }
+}
 

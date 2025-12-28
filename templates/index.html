@@ -27,6 +27,7 @@
             <button id="reset-btn" class="btn-secondary">Reset to Default</button>
             <button id="add-event-btn" class="btn-success">+ Add Event</button>
             <button id="manage-events-btn" class="btn-info">Manage Events</button>
+            <button id="import-csv-btn-header" class="btn-secondary">Import CSV</button>
         </div>
         
         <div id="loading" class="loading hidden">Loading timeline...</div>
@@ -92,6 +93,26 @@
             </div>
             <div id="events-list-container">
                 <div class="loading">Loading events...</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Import CSV Modal -->
+    <div id="import-csv-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Import CSV Data</h2>
+                <button class="modal-close" id="close-import-modal">&times;</button>
+            </div>
+            <div id="import-status-container">
+                <p>This will import events from <code>timeline_data_4.csv</code> into the database.</p>
+                <div id="import-status-info" class="loading">Checking current status...</div>
+                <div class="form-actions" style="margin-top: 20px;">
+                    <button id="import-csv-btn" class="btn-primary">Import CSV</button>
+                    <button id="import-csv-clear-btn" class="btn-secondary">Clear & Import (Overwrite)</button>
+                    <button type="button" class="btn-secondary" id="cancel-import">Cancel</button>
+                </div>
+                <div id="import-result" style="margin-top: 20px;"></div>
             </div>
         </div>
     </div>
