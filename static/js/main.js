@@ -659,6 +659,9 @@ function wireUpPlotlyEvents() {
     graphDiv.on('plotly_click', (data) => {
         handlePlotlyClick(data);
     });
+    
+    // Add fluid scrolling with mouse/trackpad
+    enableFluidScrolling(graphDiv);
 }
 
 // Update backdrop based on visible time range
@@ -856,6 +859,148 @@ function clearEventHighlight() {
     // Clear highlight info
     delete window.highlightedTraceIndex;
     delete window.highlightedEventId;
+}
+
+// Enable fluid scrolling with mouse wheel/trackpad
+function enableFluidScrolling(graphDiv) {
+    if (!graphDiv) return;
+    
+    let scrollTimeout = null;
+    
+    // Handle wheel events (mouse wheel and trackpad)
+    // Use DOM event listener, not Plotly's event system
+    graphDiv.addEventListener('wheel', (event) => {
+        // Only handle if we have valid layout data
+        if (!graphDiv.layout || !graphDiv.layout.xaxis || !graphDiv.layout.xaxis.range) {
+            return;
+        }
+        
+        event.preventDefault();
+        event.stopPropagation();
+        
+        // Get current axis ranges
+        const currentRange = graphDiv.layout.xaxis.range;
+        const currentStart = currentRange[0];
+        const currentEnd = currentRange[1];
+        const currentSpan = currentEnd - currentStart;
+        
+        // Determine if zoom (with modifier) or pan (normal scroll)
+        const isZoom = event.ctrlKey || event.metaKey || event.shiftKey;
+        
+        // Get scroll delta (normalize for different browsers/devices)
+        let deltaY = event.deltaY;
+        if (event.deltaMode === 1) {
+            // Line mode
+            deltaY *= 40;
+        } else if (event.deltaMode === 2) {
+            // Page mode
+            deltaY *= 400;
+        }
+        
+        // Smooth scrolling factors (adjust for sensitivity)
+        const panFactor = 0.0008; // How much to pan per scroll unit
+        const zoomFactor = 0.03; // How much to zoom per scroll unit
+        
+        if (isZoom) {
+            // Zoom in/out centered on mouse position
+            const rect = graphDiv.getBoundingClientRect();
+            const mouseX = event.clientX - rect.left;
+            const centerX = Math.max(0, Math.min(1, mouseX / rect.width));
+            
+            const centerYear = currentStart + (currentSpan * centerX);
+            
+            // Calculate zoom (negative because scroll down should zoom out)
+            const zoomAmount = -deltaY * zoomFactor;
+            const zoomRatio = 1 + zoomAmount;
+            
+            // Calculate new range centered on the zoom point
+            const newSpan = currentSpan * zoomRatio;
+            const newStart = centerYear - (newSpan * centerX);
+            const newEnd = centerYear + (newSpan * (1 - centerX));
+            
+            // Apply zoom
+            Plotly.relayout(graphDiv, {
+                'xaxis.range': [newStart, newEnd]
+            });
+        } else {
+            // Pan left/right (vertical scroll pans horizontally through time)
+            const panAmount = -deltaY * panFactor * currentSpan; // Negative for natural scrolling
+            const newStart = currentStart + panAmount;
+            const newEnd = currentEnd + panAmount;
+            
+            // Apply pan
+            Plotly.relayout(graphDiv, {
+                'xaxis.range': [newStart, newEnd]
+            });
+        }
+        
+        // Update backdrop after scroll (debounced)
+        clearTimeout(scrollTimeout);
+        scrollTimeout = setTimeout(() => {
+            const newRange = graphDiv.layout.xaxis.range;
+            if (newRange && newRange[0] !== undefined && newRange[1] !== undefined) {
+                const midYear = (newRange[0] + newRange[1]) / 2;
+                if (typeof setBackdropForYear === 'function') {
+                    setBackdropForYear(midYear);
+                }
+            }
+        }, 150);
+    }, { passive: false });
+    
+    // Also handle touchpad pinch-to-zoom (for trackpads)
+    let lastTouchDistance = 0;
+    let isPinching = false;
+    
+    graphDiv.addEventListener('touchstart', (e) => {
+        if (e.touches.length === 2) {
+            isPinching = true;
+            const touch1 = e.touches[0];
+            const touch2 = e.touches[1];
+            lastTouchDistance = Math.hypot(
+                touch2.clientX - touch1.clientX,
+                touch2.clientY - touch1.clientY
+            );
+        }
+    });
+    
+    graphDiv.addEventListener('touchmove', (e) => {
+        if (e.touches.length === 2 && isPinching) {
+            e.preventDefault();
+            const touch1 = e.touches[0];
+            const touch2 = e.touches[1];
+            const currentDistance = Math.hypot(
+                touch2.clientX - touch1.clientX,
+                touch2.clientY - touch1.clientY
+            );
+            
+            if (lastTouchDistance > 0) {
+                const layout = graphDiv.layout;
+                if (layout && layout.xaxis && layout.xaxis.range) {
+                    const currentRange = layout.xaxis.range;
+                    const currentStart = currentRange[0];
+                    const currentEnd = currentRange[1];
+                    const currentSpan = currentEnd - currentStart;
+                    
+                    const zoomRatio = currentDistance / lastTouchDistance;
+                    const newSpan = currentSpan / zoomRatio;
+                    const centerYear = (currentStart + currentEnd) / 2;
+                    const newStart = centerYear - newSpan / 2;
+                    const newEnd = centerYear + newSpan / 2;
+                    
+                    Plotly.relayout(graphDiv, {
+                        'xaxis.range': [newStart, newEnd]
+                    });
+                }
+            }
+            
+            lastTouchDistance = currentDistance;
+        }
+    });
+    
+    graphDiv.addEventListener('touchend', () => {
+        isPinching = false;
+        lastTouchDistance = 0;
+    });
 }
 
 // Import CSV functionality
