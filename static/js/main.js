@@ -15,6 +15,8 @@ const manageEventsBtn = document.getElementById('manage-events-btn');
 const timelineContainer = document.getElementById('timeline-container');
 const loadingDiv = document.getElementById('loading');
 const errorDiv = document.getElementById('error');
+const eventSearchInput = document.getElementById('event-search');
+const searchResultsDiv = document.getElementById('search-results');
 
 // Modal elements
 const addEventModal = document.getElementById('add-event-modal');
@@ -116,6 +118,51 @@ document.addEventListener('DOMContentLoaded', () => {
     if (endYearInput) {
         endYearInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') handleUpdate();
+        });
+    }
+    
+    // Event search functionality
+    if (eventSearchInput) {
+        eventSearchInput.addEventListener('input', (e) => {
+            const query = e.target.value.trim();
+            
+            clearTimeout(searchTimeout);
+            
+            if (query.length < 2) {
+                hideSearchResults();
+                return;
+            }
+            
+            searchTimeout = setTimeout(() => {
+                searchEvents(query);
+            }, 300); // Debounce search
+        });
+        
+        eventSearchInput.addEventListener('keydown', (e) => {
+            if (!searchResultsDiv.classList.contains('hidden') && currentSearchResults.length > 0) {
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    selectedSearchIndex = Math.min(selectedSearchIndex + 1, currentSearchResults.length - 1);
+                    updateSearchSelection();
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    selectedSearchIndex = Math.max(selectedSearchIndex - 1, -1);
+                    updateSearchSelection();
+                } else if (e.key === 'Enter' && selectedSearchIndex >= 0) {
+                    e.preventDefault();
+                    selectEvent(currentSearchResults[selectedSearchIndex]);
+                } else if (e.key === 'Escape') {
+                    hideSearchResults();
+                }
+            }
+        });
+        
+        // Hide results when clicking outside
+        document.addEventListener('click', (e) => {
+            if (eventSearchInput && !eventSearchInput.contains(e.target) && 
+                searchResultsDiv && !searchResultsDiv.contains(e.target)) {
+                hideSearchResults();
+            }
         });
     }
 });
@@ -440,6 +487,133 @@ function showSuccess(message) {
 
 // Make deleteEvent available globally for onclick handlers
 window.deleteEvent = deleteEvent;
+
+// Event search functionality
+let searchTimeout;
+let selectedSearchIndex = -1;
+let currentSearchResults = [];
+
+async function searchEvents(query) {
+    try {
+        const response = await fetch(`/api/events/search?q=${encodeURIComponent(query)}&limit=10`);
+        
+        if (!response.ok) {
+            throw new Error('Search failed');
+        }
+        
+        const result = await response.json();
+        currentSearchResults = result.data || [];
+        selectedSearchIndex = -1;
+        
+        displaySearchResults(currentSearchResults);
+        
+    } catch (error) {
+        console.error('Error searching events:', error);
+        searchResultsDiv.innerHTML = '<div class="search-no-results">Error searching events</div>';
+        showSearchResults();
+    }
+}
+
+function displaySearchResults(results) {
+    if (!searchResultsDiv) return;
+    
+    if (results.length === 0) {
+        searchResultsDiv.innerHTML = '<div class="search-no-results">No events found</div>';
+        showSearchResults();
+        return;
+    }
+    
+    const html = results.map((event, index) => {
+        const category = escapeHtml(event.category || 'N/A');
+        const continent = escapeHtml(event.continent || 'N/A');
+        const year = formatYear(event.start_year);
+        
+        return `
+            <div class="search-result-item" data-index="${index}" data-event-id="${event.id}" 
+                 data-start-year="${event.start_year}" data-end-year="${event.end_year || event.start_year}">
+                <div class="search-result-title">${escapeHtml(event.title || 'Untitled')}</div>
+                <div class="search-result-details">
+                    <span class="search-result-category">${category}</span>
+                    <span>${continent}</span>
+                    <span style="margin-left: 8px;">${year}</span>
+                </div>
+            </div>
+        `;
+    }).join('');
+    
+    searchResultsDiv.innerHTML = html;
+    showSearchResults();
+    
+    // Add click handlers
+    searchResultsDiv.querySelectorAll('.search-result-item').forEach(item => {
+        item.addEventListener('click', () => {
+            const index = parseInt(item.dataset.index);
+            selectEvent(currentSearchResults[index]);
+        });
+    });
+}
+
+function updateSearchSelection() {
+    if (!searchResultsDiv) return;
+    
+    const items = searchResultsDiv.querySelectorAll('.search-result-item');
+    items.forEach((item, index) => {
+        if (index === selectedSearchIndex) {
+            item.classList.add('selected');
+            item.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        } else {
+            item.classList.remove('selected');
+        }
+    });
+}
+
+function selectEvent(event) {
+    if (!event) return;
+    
+    // Hide search results
+    hideSearchResults();
+    
+    // Clear search input
+    if (eventSearchInput) {
+        eventSearchInput.value = '';
+    }
+    
+    // Calculate year range to center on this event
+    const eventStartYear = event.start_year;
+    const eventEndYear = event.end_year || event.start_year;
+    
+    // Set a range around the event (show 10% of timeline on each side, or minimum 1000 years)
+    const yearSpan = Math.max(eventEndYear - eventStartYear, 1000);
+    const padding = Math.max(yearSpan * 0.1, 1000);
+    
+    const newStartYear = Math.floor(eventStartYear - padding);
+    const newEndYear = Math.ceil(eventEndYear + padding);
+    
+    // Update year inputs
+    if (startYearInput) startYearInput.value = newStartYear;
+    if (endYearInput) endYearInput.value = newEndYear;
+    
+    // Reload timeline with new range
+    loadTimeline(newStartYear, newEndYear).then(() => {
+        // After timeline loads, try to highlight the event
+        // Note: Plotly doesn't have a direct "scroll to point" but we can use the range we set
+        console.log(`Centered timeline on event: ${event.title} (${eventStartYear} - ${eventEndYear})`);
+    });
+}
+
+function showSearchResults() {
+    if (searchResultsDiv) {
+        searchResultsDiv.classList.remove('hidden');
+    }
+}
+
+function hideSearchResults() {
+    if (searchResultsDiv) {
+        searchResultsDiv.classList.add('hidden');
+    }
+    selectedSearchIndex = -1;
+    currentSearchResults = [];
+}
 
 // Import CSV functionality
 async function checkImportStatus() {

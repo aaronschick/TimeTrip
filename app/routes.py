@@ -433,3 +433,62 @@ def import_status():
             'database_connected': False
         }), 500
 
+@bp.route('/api/events/search', methods=['GET'])
+def search_events():
+    """Search events by title, description, or category"""
+    try:
+        query = request.args.get('q', '').strip()
+        limit = request.args.get('limit', type=int, default=10)
+        
+        if not query or len(query) < 2:
+            return jsonify({
+                'count': 0,
+                'data': []
+            })
+        
+        # Search in title, description, and category
+        search_pattern = f'%{query}%'
+        
+        events = TimelineEvent.query.filter(
+            db.or_(
+                TimelineEvent.title.ilike(search_pattern),
+                TimelineEvent.description.ilike(search_pattern),
+                TimelineEvent.category.ilike(search_pattern),
+                TimelineEvent.continent.ilike(search_pattern)
+            )
+        ).limit(limit).all()
+        
+        # Convert to dict and add relevance score (simple: title matches are more relevant)
+        results = []
+        for event in events:
+            event_dict = event.to_dict()
+            # Calculate simple relevance score
+            score = 0
+            title_lower = event.title.lower()
+            query_lower = query.lower()
+            if title_lower.startswith(query_lower):
+                score = 100
+            elif query_lower in title_lower:
+                score = 50
+            elif query_lower in (event.description or '').lower():
+                score = 25
+            else:
+                score = 10
+            event_dict['relevance'] = score
+            results.append(event_dict)
+        
+        # Sort by relevance
+        results.sort(key=lambda x: x['relevance'], reverse=True)
+        
+        return jsonify({
+            'count': len(results),
+            'data': results
+        })
+    except Exception as e:
+        import traceback
+        db.session.rollback()
+        return jsonify({
+            'error': str(e),
+            'traceback': traceback.format_exc()
+        }), 500
+
