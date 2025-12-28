@@ -838,7 +838,7 @@ function updateBackdropFromPlotly(eventData) {
     }
 }
 
-// Handle Plotly point click - populate event details or expand cluster
+// Handle Plotly point/span click - populate event details or expand cluster
 function handlePlotlyClick(data) {
     if (!data || !data.points || data.points.length === 0) return;
     
@@ -846,21 +846,33 @@ function handlePlotlyClick(data) {
     const customdata = point.customdata;
     
     if (!customdata) {
-        console.warn('No customdata found for clicked point');
+        console.warn('No customdata found for clicked point/span');
         return;
     }
     
+    // Handle both array and object customdata
+    // For spans (lines), customdata might be an array with two elements (start/end points)
+    // We'll use the first element which should have the same event data
+    let eventCustomdata = customdata;
+    if (Array.isArray(customdata) && customdata.length > 0 && Array.isArray(customdata[0])) {
+        // This is a span with customdata at both endpoints - use first endpoint
+        eventCustomdata = customdata[0];
+    } else if (Array.isArray(customdata) && customdata.length > 0 && !Array.isArray(customdata[0])) {
+        // This is a single point/span with customdata array
+        eventCustomdata = customdata;
+    }
+    
     // Check if this is a cluster (customdata indices: 14=is_cluster, 15=cluster_id)
-    const is_cluster = customdata[14] === true || customdata[14] === 'True';
-    const cluster_id = customdata[15];
+    const is_cluster = Array.isArray(eventCustomdata) && (eventCustomdata[14] === true || eventCustomdata[14] === 'True');
+    const cluster_id = Array.isArray(eventCustomdata) ? eventCustomdata[15] : null;
     
     if (is_cluster && cluster_id && clusterInfo[cluster_id]) {
         // Expand cluster by zooming into its time range
         expandCluster(cluster_id);
     } else {
-        // Regular event - show details
+        // Regular event (point or span) - show details
         clearEventHighlight();
-        populateEventDetails(customdata);
+        populateEventDetails(eventCustomdata);
     }
 }
 

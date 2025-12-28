@@ -5,6 +5,7 @@ from plotly.subplots import make_subplots
 import json
 import os
 from app.clustering import get_zoom_tier, should_cluster, cluster_events
+from app.span_packing import prepare_spans_and_points, should_render_as_span
 
 # Import config - handle both direct execution and Flask app context
 Config = None
@@ -278,11 +279,21 @@ class TimelineGenerator:
         categories = df_plot['category'].unique()
         colors = px.colors.qualitative.Set3  # Use a color palette
         
+        # Create category to numeric y-position mapping (for lane offsets)
+        category_to_y = {cat: idx for idx, cat in enumerate(categories)}
+        lane_offset = 0.12  # Vertical offset per lane (as fraction of category spacing)
+        
+        # Calculate time range for span rendering decisions
+        time_range = end_year - start_year
+        
         # Create a trace for each category to ensure all points are included
         for idx, cat in enumerate(categories):
-            cat_data = df_plot[df_plot['category'] == cat]
+            cat_data = df_plot[df_plot['category'] == cat].copy()
             
-            # Prepare hover text and customdata for each point
+            # Separate spans and points, and pack spans into lanes
+            spans_data, points_df, lane_assignments = prepare_spans_and_points(cat_data, time_range, cat)
+            
+            # Prepare hover text and customdata for all events (spans and points)
             hover_templates = []
             customdata_list = []
             
@@ -362,15 +373,102 @@ class TimelineGenerator:
             individual_data = cat_data[~cluster_mask] if 'is_cluster' in cat_data.columns else cat_data
             cluster_data = cat_data[cluster_mask] if 'is_cluster' in cat_data.columns else pd.DataFrame()
             
-            # Create trace for individual events
-            if not individual_data.empty:
-                individual_indices = [i for i, is_clust in enumerate(cluster_mask) if not is_clust] if 'is_cluster' in cat_data.columns else list(range(len(cat_data)))
-                individual_hover = [hover_templates[i] for i in individual_indices]
-                individual_customdata = [customdata_list[i] for i in individual_indices]
+            # Separate individual events into spans and points
+            individual_spans = []
+            individual_points = []
+            
+            for orig_idx, row in individual_data.iterrows():
+                is_cluster = row.get('is_cluster', False)
+                if is_cluster:
+                    continue
                 
-                trace = go.Scatter(
-                    x=individual_data['year'].tolist(),
-                    y=[str(cat)] * len(individual_data),
+                # Find corresponding hover and customdata
+                row_idx = cat_data.index.get_loc(orig_idx) if orig_idx in cat_data.index else None
+                if row_idx is None:
+                    continue
+                
+                hover_text = hover_templates[row_idx] if row_idx < len(hover_templates) else ''
+                customdata = customdata_list[row_idx] if row_idx < len(customdata_list) else None
+                
+                is_span = should_render_as_span(row, time_range)
+                
+                if is_span:
+                    # Find lane assignment
+                    span_info = next((s for s in spans_data if s['index'] == orig_idx), None)
+                    lane = span_info['lane'] if span_info else 0
+                    
+                    individual_spans.append({
+                        'row': row,
+                        'hover': hover_text,
+                        'customdata': customdata,
+                        'lane': lane
+                    })
+                else:
+                    individual_points.append({
+                        'row': row,
+                        'hover': hover_text,
+                        'customdata': customdata
+                    })
+            
+            # Render spans as horizontal lines with lane offsets
+            if individual_spans:
+                base_y = category_to_y[cat]
+                
+                # Create span traces (one per span for proper hover/click)
+                for span_info in individual_spans:
+                    row = span_info['row']
+                    lane = span_info['lane']
+                    
+                    # Calculate y-position with lane offset
+                    y_pos = base_y + (lane * lane_offset)
+                    
+                    x_vals = [row['start_year'], row['end_year']]
+                    y_vals = [y_pos, y_pos]
+                    
+                    span_trace = go.Scatter(
+                        x=x_vals,
+                        y=y_vals,
+                        mode='lines+markers',  # Add markers at endpoints for better clickability
+                        name=f"{cat} span" if lane == 0 else None,
+                        showlegend=(lane == 0 and idx == 0),  # Only show legend for first span trace
+                        line=dict(
+                            width=4,
+                            color=colors[idx % len(colors)],
+                        ),
+                        marker=dict(
+                            size=6,
+                            color=colors[idx % len(colors)],
+                            opacity=0.7
+                        ),
+                        hoverinfo='text',
+                        text=[span_info['hover'], span_info['hover']],
+                        customdata=[span_info['customdata'], span_info['customdata']],
+                        hovertemplate='%{text}<br>Start: %{x:,}<br>End: %{x:,}<extra></extra>',
+                        fill='none',
+                    )
+                    fig.add_trace(span_trace, row=1, col=1)
+            
+            # Render points for instant events
+            if individual_points:
+                point_rows = [p['row'] for p in individual_points]
+                point_hover = [p['hover'] for p in individual_points]
+                point_customdata = [p['customdata'] for p in individual_points]
+                
+                # Ensure we have year column for points
+                point_years = []
+                for p_row in point_rows:
+                    if 'year' in p_row and pd.notna(p_row['year']):
+                        point_years.append(p_row['year'])
+                    elif pd.notna(p_row.get('start_year')):
+                        point_years.append(p_row['start_year'])
+                    else:
+                        point_years.append(None)
+                
+                base_y = category_to_y[cat]
+                
+                point_trace = go.Scatter(
+                    x=point_years,
+                    y=[base_y] * len(individual_points),  # Use numeric y-position
                     mode='markers',
                     name=str(cat),
                     marker=dict(
@@ -379,11 +477,11 @@ class TimelineGenerator:
                         line=dict(width=1, color="rgba(255, 255, 255, 0.3)"),
                         opacity=0.85
                     ),
-                    text=individual_hover,
-                    customdata=individual_customdata,
+                    text=point_hover,
+                    customdata=point_customdata,
                     hovertemplate='%{text}<br>Year: %{x:,}<extra></extra>',
                 )
-                fig.add_trace(trace, row=1, col=1)
+                fig.add_trace(point_trace, row=1, col=1)
             
             # Create trace for clusters (larger, different style)
             if not cluster_data.empty:
@@ -391,9 +489,11 @@ class TimelineGenerator:
                 cluster_hover = [hover_templates[i] for i in cluster_indices]
                 cluster_customdata = [customdata_list[i] for i in cluster_indices]
                 
+                base_y = category_to_y[cat]
+                
                 cluster_trace = go.Scatter(
                     x=cluster_data['year'].tolist(),
-                    y=[str(cat)] * len(cluster_data),
+                    y=[base_y] * len(cluster_data),  # Use numeric y-position
                     mode='markers',
                     name=f"{cat} (clusters)",
                     marker=dict(
@@ -433,6 +533,9 @@ class TimelineGenerator:
         fig.update_yaxes(
             title_text="Category",
             autorange="reversed",
+            tickmode='array',
+            tickvals=list(range(len(categories))),
+            ticktext=[str(cat) for cat in categories],
             row=1,
             col=1,
         )
