@@ -4,6 +4,8 @@
 
 This implementation adds span rendering (horizontal bars) for events with duration, with automatic lane packing to handle overlapping spans. Events are rendered as spans when they have a significant duration relative to the visible time range, and as points for instantaneous events.
 
+**Note**: Span rendering can be toggled on/off via the "Spans: On/Off" button in the UI. When disabled, all events are rendered as points regardless of duration.
+
 ## How It Works
 
 ### A) Span Detection
@@ -73,12 +75,16 @@ The timeline uses numeric y-positions (0, 1, 2, ...) for categories, with custom
 
 - Updated `handlePlotlyClick()` to handle both point and span clicks
 - Handles customdata arrays for spans (which have data at both endpoints)
+- Added `toggleSpans()` function to toggle span rendering mode
+- Added `spansEnabled` state variable
 
 ## Changed Files
 
 1. **`app/span_packing.py`** (NEW): Span detection and lane packing logic
-2. **`app/timeline.py`**: Integrated span rendering with lane packing
-3. **`static/js/main.js`**: Updated click handler for spans
+2. **`app/timeline.py`**: Integrated span rendering with lane packing, added `enable_spans` parameter
+3. **`app/routes.py`**: Added `enable_spans` query parameter to `/api/timeline` endpoint
+4. **`static/js/main.js`**: Updated click handler for spans, added span toggle functionality
+5. **`templates/index.html`**: Added "Spans: On/Off" toggle button
 
 ## Testing
 
@@ -110,6 +116,13 @@ The timeline uses numeric y-positions (0, 1, 2, ...) for categories, with custom
 3. Zoom into a narrower range
 4. Verify those events become spans again
 
+### Test Span Toggle
+
+1. Click "Spans: On" button → should change to "Spans: Off"
+2. Timeline should reload showing all events as points (no spans)
+3. Click again → should re-enable spans
+4. Verify events with duration appear as spans when enabled
+
 ### Test Existing Features
 
 - Click spans → shows event details ✓
@@ -118,6 +131,7 @@ The timeline uses numeric y-positions (0, 1, 2, ...) for categories, with custom
 - Hover on points → shows event info ✓
 - Search/filter/modals/import → all preserved ✓
 - Clustering → still works ✓
+- Span toggle → works independently of clustering ✓
 
 ## Performance Notes
 

@@ -27,10 +27,14 @@ const eventsListContainer = document.getElementById('events-list-container');
 const importStatusContainer = document.getElementById('import-status-info');
 const importResultDiv = document.getElementById('import-result');
 const clustersToggleBtn = document.getElementById('clusters-toggle-btn');
+const spansToggleBtn = document.getElementById('spans-toggle-btn');
 
 // Clustering state
 let clusteringEnabled = true;
 let clusterInfo = {};  // Store cluster info from API response
+
+// Span rendering state
+let spansEnabled = true;  // Whether to render events with duration as spans
 
 // Map selection functions
 function toggleMapSelectionMode() {
@@ -133,6 +137,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Button handlers
     if (updateBtn) updateBtn.addEventListener('click', handleUpdate);
     if (resetBtn) resetBtn.addEventListener('click', handleReset);
+    if (clustersToggleBtn) clustersToggleBtn.addEventListener('click', toggleClustering);
+    if (spansToggleBtn) spansToggleBtn.addEventListener('click', toggleSpans);
     if (addEventBtn) addEventBtn.addEventListener('click', () => showModal(addEventModal));
     if (manageEventsBtn) {
         manageEventsBtn.addEventListener('click', () => {
@@ -299,6 +305,20 @@ function toggleClustering() {
     loadTimeline(currentStart, currentEnd);
 }
 
+function toggleSpans() {
+    spansEnabled = !spansEnabled;
+    if (spansToggleBtn) {
+        spansToggleBtn.textContent = `Spans: ${spansEnabled ? 'On' : 'Off'}`;
+        spansToggleBtn.classList.toggle('btn-secondary', spansEnabled);
+        spansToggleBtn.classList.toggle('btn-warning', !spansEnabled);
+    }
+    
+    // Reload timeline with new span rendering setting
+    const currentStart = parseInt(startYearInput.value);
+    const currentEnd = parseInt(endYearInput.value);
+    loadTimeline(currentStart, currentEnd);
+}
+
 async function loadTimeline(startYear, endYear) {
     hideError();
     showLoading();
@@ -309,8 +329,8 @@ async function loadTimeline(startYear, endYear) {
     try {
         console.log(`Loading timeline for range: ${startYear} to ${endYear}`);
         
-        // Build URL with location filter and clustering option
-        let url = `/api/timeline?start_year=${startYear}&end_year=${endYear}&enable_clustering=${clusteringEnabled}`;
+        // Build URL with location filter, clustering, and span rendering options
+        let url = `/api/timeline?start_year=${startYear}&end_year=${endYear}&enable_clustering=${clusteringEnabled}&enable_spans=${spansEnabled}`;
         if (window.appState.mapFilter && window.appState.mapFilter.type === 'point') {
             url += `&filter_lat=${window.appState.mapFilter.lat}&filter_lon=${window.appState.mapFilter.lon}`;
             if (window.appState.mapFilter.radius) {

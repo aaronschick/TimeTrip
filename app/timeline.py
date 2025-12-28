@@ -148,7 +148,7 @@ class TimelineGenerator:
         )
         return self.df[mask].copy()
     
-    def make_figure_json(self, start_year, end_year, enable_clustering=True):
+    def make_figure_json(self, start_year, end_year, enable_clustering=True, enable_spans=True):
         """
         Build a dual-view timeline and return as JSON:
           - Row 1: numeric year axis (full deep-time range).
@@ -158,6 +158,7 @@ class TimelineGenerator:
             start_year: Start of visible time range
             end_year: End of visible time range
             enable_clustering: Whether to cluster events when zoomed out (default: True)
+            enable_spans: Whether to render events with duration as spans (default: True)
         """
         # Filter by overlap in numeric years
         df_filtered = self.get_filtered_data(start_year, end_year)
@@ -290,8 +291,14 @@ class TimelineGenerator:
         for idx, cat in enumerate(categories):
             cat_data = df_plot[df_plot['category'] == cat].copy()
             
-            # Separate spans and points, and pack spans into lanes
-            spans_data, points_df, lane_assignments = prepare_spans_and_points(cat_data, time_range, cat)
+            # Separate spans and points, and pack spans into lanes (if spans enabled)
+            if enable_spans:
+                spans_data, points_df, lane_assignments = prepare_spans_and_points(cat_data, time_range, cat)
+            else:
+                # If spans disabled, treat all events as points
+                spans_data = []
+                points_df = cat_data.copy()
+                lane_assignments = {}
             
             # Prepare hover text and customdata for all events (spans and points)
             hover_templates = []

@@ -37,6 +37,9 @@ def get_timeline():
     # Get clustering parameter (default: True)
     enable_clustering = request.args.get('enable_clustering', 'true').lower() == 'true'
     
+    # Get span rendering parameter (default: True)
+    enable_spans = request.args.get('enable_spans', 'true').lower() == 'true'
+    
     # Get map filter parameters
     filter_lat = request.args.get('filter_lat', type=float)
     filter_lon = request.args.get('filter_lon', type=float)
