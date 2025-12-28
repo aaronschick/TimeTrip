@@ -22,6 +22,13 @@ class TimelineEvent(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
+    # Location fields
+    lat = db.Column(db.Float, nullable=True)
+    lon = db.Column(db.Float, nullable=True)
+    location_label = db.Column(db.String(500), nullable=True)
+    geometry = db.Column(db.Text, nullable=True)  # GeoJSON string
+    location_confidence = db.Column(db.String(20), default='exact')  # 'exact', 'approx', 'disputed'
+    
     def to_dict(self):
         """Convert model instance to dictionary"""
         return {
@@ -34,6 +41,11 @@ class TimelineEvent(db.Model):
             'description': self.description,
             'start_date': self.start_date.isoformat() if self.start_date else None,
             'end_date': self.end_date.isoformat() if self.end_date else None,
+            'lat': self.lat,
+            'lon': self.lon,
+            'location_label': self.location_label,
+            'geometry': self.geometry,
+            'location_confidence': self.location_confidence,
         }
     
     def __repr__(self):

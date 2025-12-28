@@ -85,6 +85,39 @@ def import_csv_data(csv_path=None):
                     except:
                         end_date = None
                 
+                # Parse location fields if present
+                lat = None
+                lon = None
+                if 'lat' in row and pd.notna(row['lat']):
+                    try:
+                        lat = float(row['lat'])
+                        if lat < -90 or lat > 90:
+                            lat = None
+                    except (ValueError, TypeError):
+                        lat = None
+                
+                if 'lon' in row and pd.notna(row['lon']):
+                    try:
+                        lon = float(row['lon'])
+                        if lon < -180 or lon > 180:
+                            lon = None
+                    except (ValueError, TypeError):
+                        lon = None
+                
+                location_label = None
+                if 'location_label' in row and pd.notna(row['location_label']):
+                    location_label = str(row['location_label']).strip() or None
+                
+                geometry = None
+                if 'geometry' in row and pd.notna(row['geometry']):
+                    geometry = str(row['geometry']).strip() or None
+                
+                location_confidence = 'exact'
+                if 'location_confidence' in row and pd.notna(row['location_confidence']):
+                    conf = str(row['location_confidence']).strip().lower()
+                    if conf in ['exact', 'approx', 'disputed']:
+                        location_confidence = conf
+                
                 # Create event
                 event = TimelineEvent(
                     id=str(row['id']).strip(),
@@ -95,7 +128,12 @@ def import_csv_data(csv_path=None):
                     end_year=int(row.get('end_year', row['start_year'])),
                     description=str(row.get('description', '')).strip() if pd.notna(row.get('description')) else None,
                     start_date=start_date,
-                    end_date=end_date
+                    end_date=end_date,
+                    lat=lat,
+                    lon=lon,
+                    location_label=location_label,
+                    geometry=geometry,
+                    location_confidence=location_confidence
                 )
                 
                 db.session.add(event)

@@ -561,6 +561,19 @@ header h1 {
     margin-bottom: 20px;
 }
 
+.form-section {
+    margin: 25px 0;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.form-row {
+    display: flex;
+    gap: 15px;
+}
+
 .form-group label {
     display: block;
     margin-bottom: 8px;

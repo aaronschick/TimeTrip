@@ -41,6 +41,8 @@ class TimelineGenerator:
         
     def _load_data(self):
         """Load and prepare data from database"""
+        # Store original dataframe for reference
+        self._original_df = None
         if self.db_session is None:
             # Fallback: try to load from CSV if database not available
             try:
@@ -64,6 +66,9 @@ class TimelineGenerator:
                 # Convert to list of dicts
                 data = [event.to_dict() for event in events]
                 df = pd.DataFrame(data)
+                
+                # Store original for reference
+                self._original_df = df.copy()
                 
                 # Debug: log data loading
                 print(f"DEBUG: Loaded {len(df)} events from database")
@@ -262,7 +267,7 @@ class TimelineGenerator:
                     parts.append(f"<br><i>{desc}</i>")
                 hover_templates.append("<br>".join(parts))
                 
-                # Customdata for click events: [id, title, category, continent, start_year, end_year, start_date, end_date, description]
+                # Customdata for click events: [id, title, category, continent, start_year, end_year, start_date, end_date, description, lat, lon, location_label, geometry, location_confidence]
                 start_date_str = None
                 end_date_str = None
                 if pd.notna(row.get('start_date')):
@@ -276,6 +281,13 @@ class TimelineGenerator:
                     except:
                         end_date_str = None
                 
+                # Get location fields
+                lat = row.get('lat') if pd.notna(row.get('lat')) else None
+                lon = row.get('lon') if pd.notna(row.get('lon')) else None
+                location_label = str(row.get('location_label', '')) if pd.notna(row.get('location_label')) else None
+                geometry = str(row.get('geometry', '')) if pd.notna(row.get('geometry')) else None
+                location_confidence = str(row.get('location_confidence', 'exact')) if pd.notna(row.get('location_confidence')) else 'exact'
+                
                 customdata_list.append([
                     str(row.get('id', '')),
                     str(row.get('title', 'Unknown')),
@@ -285,7 +297,12 @@ class TimelineGenerator:
                     int(row['end_year']) if pd.notna(row.get('end_year')) else None,
                     start_date_str,
                     end_date_str,
-                    str(row.get('description', '')) if pd.notna(row.get('description')) else ''
+                    str(row.get('description', '')) if pd.notna(row.get('description')) else '',
+                    float(lat) if lat is not None else None,
+                    float(lon) if lon is not None else None,
+                    location_label,
+                    geometry,
+                    location_confidence
                 ])
             
             # Create trace with all points for this category
@@ -384,6 +401,14 @@ class TimelineGenerator:
                                 end_date_str = row['end_date'].strftime('%Y-%m-%d') if hasattr(row['end_date'], 'strftime') else str(row['end_date'])
                             except:
                                 end_date_str = None
+                        
+                        # Get location fields
+                        lat = row.get('lat') if pd.notna(row.get('lat')) else None
+                        lon = row.get('lon') if pd.notna(row.get('lon')) else None
+                        location_label = str(row.get('location_label', '')) if pd.notna(row.get('location_label')) else None
+                        geometry = str(row.get('geometry', '')) if pd.notna(row.get('geometry')) else None
+                        location_confidence = str(row.get('location_confidence', 'exact')) if pd.notna(row.get('location_confidence')) else 'exact'
+                        
                         trace_customdata.append([
                             str(row.get('id', '')),
                             str(row.get('title', 'Unknown')),
@@ -393,7 +418,12 @@ class TimelineGenerator:
                             int(row['end_year']) if pd.notna(row.get('end_year')) else None,
                             start_date_str,
                             end_date_str,
-                            str(row.get('description', '')) if pd.notna(row.get('description')) else ''
+                            str(row.get('description', '')) if pd.notna(row.get('description')) else '',
+                            float(lat) if lat is not None else None,
+                            float(lon) if lon is not None else None,
+                            location_label,
+                            geometry,
+                            location_confidence
                         ])
                     trace.customdata = trace_customdata
                 fig.add_trace(trace, row=2, col=1)

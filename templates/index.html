@@ -68,6 +68,28 @@
                                 <p>Select an event to view its location</p>
                             </div>
                         </div>
+                        <!-- Map Filter Controls -->
+                        <div id="map-filter-controls" class="map-filter-controls hidden" style="margin-top: 15px; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);">
+                            <h4 style="margin-bottom: 10px; font-size: 1rem;">Filter Timeline by Location</h4>
+                            <div class="form-row" style="margin-bottom: 10px;">
+                                <div class="form-group" style="flex: 1; margin-bottom: 0;">
+                                    <label style="font-size: 0.85rem;">Latitude</label>
+                                    <input type="number" id="filter-lat" step="any" min="-90" max="90" placeholder="Lat" style="width: 100%; padding: 6px;">
+                                </div>
+                                <div class="form-group" style="flex: 1; margin-bottom: 0;">
+                                    <label style="font-size: 0.85rem;">Longitude</label>
+                                    <input type="number" id="filter-lon" step="any" min="-180" max="180" placeholder="Lon" style="width: 100%; padding: 6px;">
+                                </div>
+                            </div>
+                            <div class="form-group" style="margin-bottom: 10px;">
+                                <label style="font-size: 0.85rem;">Radius (km)</label>
+                                <input type="number" id="filter-radius" step="10" min="10" max="10000" value="500" style="width: 100%; padding: 6px;">
+                            </div>
+                            <div style="display: flex; gap: 8px;">
+                                <button onclick="applyMapFilter()" class="btn-primary" style="flex: 1; padding: 8px; font-size: 0.9rem;">Apply Filter</button>
+                                <button onclick="clearMapFilter()" class="btn-secondary" style="flex: 1; padding: 8px; font-size: 0.9rem;">Clear</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -117,6 +139,41 @@
                     <label for="event-description">Description</label>
                     <textarea id="event-description" rows="3" placeholder="Optional description"></textarea>
                 </div>
+                
+                <!-- Location Section -->
+                <div class="form-section">
+                    <h3 style="margin-bottom: 15px; font-size: 1.1rem; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 8px;">Location (Optional)</h3>
+                    <div class="form-group">
+                        <label for="event-location-label">Location Label</label>
+                        <input type="text" id="event-location-label" placeholder="e.g., Rome, Italy">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group" style="flex: 1;">
+                            <label for="event-lat">Latitude</label>
+                            <input type="number" id="event-lat" step="any" min="-90" max="90" placeholder="-90 to 90">
+                        </div>
+                        <div class="form-group" style="flex: 1;">
+                            <label for="event-lon">Longitude</label>
+                            <input type="number" id="event-lon" step="any" min="-180" max="180" placeholder="-180 to 180">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="event-location-confidence">Location Confidence</label>
+                        <select id="event-location-confidence">
+                            <option value="exact">Exact</option>
+                            <option value="approx">Approximate</option>
+                            <option value="disputed">Disputed</option>
+                        </select>
+                    </div>
+                    <details style="margin-top: 10px;">
+                        <summary style="cursor: pointer; color: rgba(255,255,255,0.7); font-size: 0.9rem; padding: 5px;">Advanced: GeoJSON</summary>
+                        <div class="form-group" style="margin-top: 10px;">
+                            <label for="event-geometry">GeoJSON Geometry</label>
+                            <textarea id="event-geometry" rows="4" placeholder='{"type": "Point", "coordinates": [lon, lat]}'></textarea>
+                        </div>
+                    </details>
+                </div>
+                
                 <div class="form-actions">
                     <button type="submit" class="btn-primary">Add Event</button>
                     <button type="button" class="btn-secondary" id="cancel-add-event">Cancel</button>

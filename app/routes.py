@@ -34,12 +34,48 @@ def get_timeline():
     start_year = request.args.get('start_year', type=int, default=-5_000_000_000)
     end_year = request.args.get('end_year', type=int, default=2025)
     
+    # Get map filter parameters
+    filter_lat = request.args.get('filter_lat', type=float)
+    filter_lon = request.args.get('filter_lon', type=float)
+    filter_radius = request.args.get('filter_radius', type=float, default=500.0)  # km
+    
     try:
         timeline_gen = get_timeline_generator()
         
         # Get count before generating figure
         filtered_data = timeline_gen.get_filtered_data(start_year, end_year)
+        
+        # Apply location filter if provided
+        if filter_lat is not None and filter_lon is not None:
+            import math
+            # Filter events within radius (using Haversine formula for distance)
+            def haversine_distance(lat1, lon1, lat2, lon2):
+                """Calculate distance between two points in km"""
+                R = 6371  # Earth radius in km
+                dlat = math.radians(lat2 - lat1)
+                dlon = math.radians(lon2 - lon1)
+                a = math.sin(dlat/2)**2 + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(dlon/2)**2
+                c = 2 * math.asin(math.sqrt(a))
+                return R * c
+            
+            # Filter events with valid lat/lon within radius
+            location_filtered = []
+            for _, row in filtered_data.iterrows():
+                if pd.notna(row.get('lat')) and pd.notna(row.get('lon')):
+                    distance = haversine_distance(filter_lat, filter_lon, row['lat'], row['lon'])
+                    if distance <= filter_radius:
+                        location_filtered.append(True)
+                    else:
+                        location_filtered.append(False)
+                else:
+                    location_filtered.append(False)
+            
+            filtered_data = filtered_data[location_filtered]
+        
         event_count = len(filtered_data)
+        
+        # Update timeline generator's filtered data
+        timeline_gen.df = filtered_data
         
         fig_json = timeline_gen.make_figure_json(start_year, end_year)
         
@@ -50,11 +86,13 @@ def get_timeline():
             fig_json['layout']['annotations'] = []
         
         # Add annotation showing event count (will be added to layout)
+        total_events = len(timeline_gen._original_df) if hasattr(timeline_gen, '_original_df') and timeline_gen._original_df is not None else len(timeline_gen.df)
         fig_json['_metadata'] = {
-            'total_events': len(timeline_gen.df),
+            'total_events': total_events,
             'filtered_events': event_count,
             'start_year': start_year,
-            'end_year': end_year
+            'end_year': end_year,
+            'location_filtered': filter_lat is not None and filter_lon is not None
         }
         
         return jsonify(fig_json)
@@ -197,6 +235,30 @@ def add_event():
             except:
                 end_date = None
         
+        # Validate location fields if provided
+        lat = None
+        lon = None
+        if 'lat' in data and data['lat'] is not None and data['lat'] != '':
+            try:
+                lat = float(data['lat'])
+                if lat < -90 or lat > 90:
+                    return jsonify({'error': 'Latitude must be between -90 and 90'}), 400
+            except (ValueError, TypeError):
+                return jsonify({'error': 'Invalid latitude value'}), 400
+        
+        if 'lon' in data and data['lon'] is not None and data['lon'] != '':
+            try:
+                lon = float(data['lon'])
+                if lon < -180 or lon > 180:
+                    return jsonify({'error': 'Longitude must be between -180 and 180'}), 400
+            except (ValueError, TypeError):
+                return jsonify({'error': 'Invalid longitude value'}), 400
+        
+        # Validate location_confidence
+        location_confidence = data.get('location_confidence', 'exact')
+        if location_confidence not in ['exact', 'approx', 'disputed']:
+            location_confidence = 'exact'
+        
         # Create new event
         new_event = TimelineEvent(
             id=event_id,
@@ -207,7 +269,12 @@ def add_event():
             end_year=int(data.get('end_year', data['start_year'])),
             description=data.get('description', '').strip() or None,
             start_date=start_date,
-            end_date=end_date
+            end_date=end_date,
+            lat=lat,
+            lon=lon,
+            location_label=data.get('location_label', '').strip() or None,
+            geometry=data.get('geometry', '').strip() or None,
+            location_confidence=location_confidence
         )
         
         # Add to database
@@ -367,6 +434,39 @@ def import_csv():
                     except:
                         end_date = None
                 
+                # Parse location fields if present
+                lat = None
+                lon = None
+                if 'lat' in row and pd.notna(row['lat']):
+                    try:
+                        lat = float(row['lat'])
+                        if lat < -90 or lat > 90:
+                            lat = None
+                    except (ValueError, TypeError):
+                        lat = None
+                
+                if 'lon' in row and pd.notna(row['lon']):
+                    try:
+                        lon = float(row['lon'])
+                        if lon < -180 or lon > 180:
+                            lon = None
+                    except (ValueError, TypeError):
+                        lon = None
+                
+                location_label = None
+                if 'location_label' in row and pd.notna(row['location_label']):
+                    location_label = str(row['location_label']).strip() or None
+                
+                geometry = None
+                if 'geometry' in row and pd.notna(row['geometry']):
+                    geometry = str(row['geometry']).strip() or None
+                
+                location_confidence = 'exact'
+                if 'location_confidence' in row and pd.notna(row['location_confidence']):
+                    conf = str(row['location_confidence']).strip().lower()
+                    if conf in ['exact', 'approx', 'disputed']:
+                        location_confidence = conf
+                
                 # Create event
                 event = TimelineEvent(
                     id=event_id,
@@ -377,7 +477,12 @@ def import_csv():
                     end_year=int(row.get('end_year', row['start_year'])),
                     description=str(row.get('description', '')).strip() if pd.notna(row.get('description')) else None,
                     start_date=start_date,
-                    end_date=end_date
+                    end_date=end_date,
+                    lat=lat,
+                    lon=lon,
+                    location_label=location_label,
+                    geometry=geometry,
+                    location_confidence=location_confidence
                 )
                 
                 db.session.add(event)

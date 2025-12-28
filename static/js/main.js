@@ -27,6 +27,91 @@ const eventsListContainer = document.getElementById('events-list-container');
 const importStatusContainer = document.getElementById('import-status-info');
 const importResultDiv = document.getElementById('import-result');
 
+// Map selection functions
+function toggleMapSelectionMode() {
+    window.appState.mapSelectionMode = !window.appState.mapSelectionMode;
+    const filterControls = document.getElementById('map-filter-controls');
+    if (filterControls) {
+        if (window.appState.mapSelectionMode) {
+            filterControls.classList.remove('hidden');
+        } else {
+            filterControls.classList.add('hidden');
+        }
+    }
+    // Refresh Earth view to show/hide selection mode UI
+    const currentEvent = window.appState.selectedEvent;
+    if (currentEvent && currentEvent.lat && currentEvent.lon) {
+        centerGlobeOnLocation(currentEvent.lat, currentEvent.lon, currentEvent.location_label || currentEvent.continent || 'Location');
+    } else {
+        updateEarthView(currentEvent?.continent || 'Global');
+    }
+}
+
+function applyMapFilter() {
+    const latInput = document.getElementById('filter-lat');
+    const lonInput = document.getElementById('filter-lon');
+    const radiusInput = document.getElementById('filter-radius');
+    
+    if (!latInput || !lonInput) return;
+    
+    const lat = parseFloat(latInput.value);
+    const lon = parseFloat(lonInput.value);
+    const radius = radiusInput ? parseFloat(radiusInput.value) || 500 : 500;
+    
+    if (isNaN(lat) || isNaN(lon) || lat < -90 || lat > 90 || lon < -180 || lon > 180) {
+        showError('Please enter valid latitude (-90 to 90) and longitude (-180 to 180)');
+        return;
+    }
+    
+    window.appState.mapFilter = {
+        type: 'point',
+        lat: lat,
+        lon: lon,
+        radius: radius
+    };
+    
+    // Reload timeline with filter
+    const currentStart = parseInt(startYearInput.value);
+    const currentEnd = parseInt(endYearInput.value);
+    loadTimeline(currentStart, currentEnd);
+    
+    // Center globe on filter location
+    centerGlobeOnLocation(lat, lon, `Filter: ${lat.toFixed(4)}, ${lon.toFixed(4)}`);
+}
+
+function clearMapFilter() {
+    window.appState.mapFilter = null;
+    const filterControls = document.getElementById('map-filter-controls');
+    if (filterControls) {
+        filterControls.classList.add('hidden');
+    }
+    window.appState.mapSelectionMode = false;
+    
+    // Clear input fields
+    const latInput = document.getElementById('filter-lat');
+    const lonInput = document.getElementById('filter-lon');
+    if (latInput) latInput.value = '';
+    if (lonInput) lonInput.value = '';
+    
+    // Reload timeline without filter
+    const currentStart = parseInt(startYearInput.value);
+    const currentEnd = parseInt(endYearInput.value);
+    loadTimeline(currentStart, currentEnd);
+    
+    // Refresh Earth view
+    const currentEvent = window.appState.selectedEvent;
+    if (currentEvent && currentEvent.lat && currentEvent.lon) {
+        centerGlobeOnLocation(currentEvent.lat, currentEvent.lon, currentEvent.location_label || currentEvent.continent || 'Location');
+    } else {
+        updateEarthView(currentEvent?.continent || 'Global');
+    }
+}
+
+// Make functions globally available
+window.toggleMapSelectionMode = toggleMapSelectionMode;
+window.clearMapFilter = clearMapFilter;
+window.applyMapFilter = applyMapFilter;
+
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
     // Initialize Observatory Mode
@@ -204,7 +289,17 @@ async function loadTimeline(startYear, endYear) {
     
     try {
         console.log(`Loading timeline for range: ${startYear} to ${endYear}`);
-        const response = await fetch(`/api/timeline?start_year=${startYear}&end_year=${endYear}`);
+        
+        // Build URL with location filter if active
+        let url = `/api/timeline?start_year=${startYear}&end_year=${endYear}`;
+        if (window.appState.mapFilter && window.appState.mapFilter.type === 'point') {
+            url += `&filter_lat=${window.appState.mapFilter.lat}&filter_lon=${window.appState.mapFilter.lon}`;
+            if (window.appState.mapFilter.radius) {
+                url += `&filter_radius=${window.appState.mapFilter.radius}`;
+            }
+        }
+        
+        const response = await fetch(url);
         
         if (!response.ok) {
             const error = await response.json();
@@ -335,6 +430,29 @@ async function handleAddEvent(e) {
             : undefined,
         description: document.getElementById('event-description').value.trim()
     };
+    
+    // Add location fields if provided
+    const latInput = document.getElementById('event-lat');
+    const lonInput = document.getElementById('event-lon');
+    const locationLabelInput = document.getElementById('event-location-label');
+    const geometryInput = document.getElementById('event-geometry');
+    const locationConfidenceInput = document.getElementById('event-location-confidence');
+    
+    if (latInput && latInput.value.trim()) {
+        eventData.lat = parseFloat(latInput.value.trim());
+    }
+    if (lonInput && lonInput.value.trim()) {
+        eventData.lon = parseFloat(lonInput.value.trim());
+    }
+    if (locationLabelInput && locationLabelInput.value.trim()) {
+        eventData.location_label = locationLabelInput.value.trim();
+    }
+    if (geometryInput && geometryInput.value.trim()) {
+        eventData.geometry = geometryInput.value.trim();
+    }
+    if (locationConfidenceInput) {
+        eventData.location_confidence = locationConfidenceInput.value;
+    }
     
     // Validation
     if (!eventData.title || !eventData.category || isNaN(eventData.start_year)) {
@@ -740,7 +858,7 @@ function populateEventDetails(eventData) {
     // Parse customdata (it might be an array or object)
     let event = eventData;
     if (Array.isArray(eventData)) {
-        // If it's an array, assume it's [id, title, category, continent, start_year, end_year, start_date, end_date, description]
+        // If it's an array, assume it's [id, title, category, continent, start_year, end_year, start_date, end_date, description, lat, lon, location_label, geometry, location_confidence]
         event = {
             id: eventData[0] || null,
             title: eventData[1] || 'Unknown',
@@ -750,7 +868,12 @@ function populateEventDetails(eventData) {
             end_year: eventData[5] || null,
             start_date: eventData[6] || null,
             end_date: eventData[7] || null,
-            description: eventData[8] || null
+            description: eventData[8] || null,
+            lat: eventData[9] !== undefined && eventData[9] !== null ? eventData[9] : null,
+            lon: eventData[10] !== undefined && eventData[10] !== null ? eventData[10] : null,
+            location_label: eventData[11] || null,
+            geometry: eventData[12] || null,
+            location_confidence: eventData[13] || 'exact'
         };
     }
     
@@ -782,12 +905,47 @@ function populateEventDetails(eventData) {
             <div class="event-detail-description">${escapeHtml(event.description)}</div>
         </div>
         ` : ''}
+        ${(event.lat !== null && event.lat !== undefined) || (event.lon !== null && event.lon !== undefined) || event.location_label ? `
+        <div class="event-detail-item">
+            <div class="event-detail-label">Location</div>
+            <div class="event-detail-value">
+                ${event.location_label ? `<strong>${escapeHtml(event.location_label)}</strong><br>` : ''}
+                ${(event.lat !== null && event.lat !== undefined) && (event.lon !== null && event.lon !== undefined) 
+                    ? `${event.lat.toFixed(4)}, ${event.lon.toFixed(4)}` 
+                    : ''}
+                ${event.location_confidence && event.location_confidence !== 'exact' 
+                    ? `<br><small style="opacity: 0.7;">Confidence: ${escapeHtml(event.location_confidence)}</small>` 
+                    : ''}
+            </div>
+        </div>
+        ` : ''}
     `;
     
     detailsContainer.innerHTML = html;
     
-    // Update Earth view
-    updateEarthView(event.continent || 'Global');
+    // Store selected event in app state
+    window.appState.selectedEvent = event;
+    
+    // Update Earth view - use event location if available, otherwise use continent
+    if (event.lat !== null && event.lat !== undefined && event.lon !== null && event.lon !== undefined) {
+        // Center on event location
+        centerGlobeOnLocation(event.lat, event.lon, event.location_label || event.continent || 'Global');
+    } else {
+        // Fall back to continent
+        updateEarthView(event.continent || 'Global');
+    }
+}
+
+// Center globe on specific location (lat/lon)
+function centerGlobeOnLocation(lat, lon, label) {
+    const earthContainer = document.getElementById('earth-container');
+    if (!earthContainer) return;
+    
+    // Use a closer zoom level for specific locations
+    const zoom = 6; // City/region level
+    
+    const coords = { lat, lng: lon, zoom };
+    createGlobeVisualization(earthContainer, label || 'Location', coords, true);
 }
 
 // Update Earth view based on continent
@@ -800,7 +958,7 @@ function updateEarthView(continent) {
     const coords = CONTINENT_COORDINATES[normalizedContinent] || CONTINENT_COORDINATES['Global'];
     
     // Create or update the Earth visualization
-    createGlobeVisualization(earthContainer, normalizedContinent, coords);
+    createGlobeVisualization(earthContainer, normalizedContinent, coords, false);
 }
 
 // Normalize continent name to match our coordinate map
@@ -829,8 +987,15 @@ function normalizeContinentName(continent) {
     return mapping[normalized.toLowerCase()] || normalized;
 }
 
+// App state for two-way linking
+window.appState = {
+    selectedEvent: null,
+    mapFilter: null, // { type: 'point'|'region', lat, lon, radius?, geometry? }
+    mapSelectionMode: false
+};
+
 // Create a simple globe visualization (no heavy dependencies)
-function createGlobeVisualization(container, continent, coords) {
+function createGlobeVisualization(container, continent, coords, isSpecificLocation = false) {
     // Clear container
     container.innerHTML = '';
     
@@ -849,6 +1014,14 @@ function createGlobeVisualization(container, continent, coords) {
     // For Google Earth Web, we use the zoom parameter directly
     const embedUrl = `https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d${Math.floor(Math.pow(2, coords.zoom) * 100)}!2d${coords.lng}!3d${coords.lat}!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e0!3m2!1sen!2sus!4v${Date.now()}!5m2!1sen!2sus`;
     
+    // Add map selection mode controls
+    const mapControlsHtml = window.appState.mapSelectionMode ? `
+        <div style="position: absolute; top: 10px; right: 10px; background: rgba(74,158,255,0.9); padding: 8px 12px; border-radius: 6px; font-size: 0.85rem; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.3); z-index: 10; pointer-events: auto;">
+            <strong>📍 Selection Mode</strong><br>
+            <small>Click on map to set filter</small>
+        </div>
+    ` : '';
+    
     const html = `
         <div style="position: relative; width: 100%; height: 100%; border-radius: 8px; overflow: hidden;">
             <iframe 
@@ -856,14 +1029,23 @@ function createGlobeVisualization(container, continent, coords) {
                 src="${embedUrl}"
                 width="100%"
                 height="100%"
-                style="border:0; border-radius: 8px;"
+                style="border:0; border-radius: 8px; ${window.appState.mapSelectionMode ? 'cursor: crosshair;' : ''}"
                 allowfullscreen=""
                 loading="lazy"
                 referrerpolicy="no-referrer-when-downgrade"
                 title="Earth View - ${escapeHtml(continent)}"
                 onerror="this.parentElement.innerHTML='<div style=\\'padding: 40px; text-align: center; color: rgba(255,255,255,0.7);\\'><div style=\\'font-size: 3rem; margin-bottom: 10px;\\'>🌍</div><p>${escapeHtml(continent)}</p><a href=\\'${mapsLink}\\' target=\\'_blank\\' style=\\'color: #4a9eff; text-decoration: none;\\'>Open in Google Maps</a></div>'">
             </iframe>
-            <div style="position: absolute; bottom: 10px; right: 10px; display: flex; gap: 8px; z-index: 10; pointer-events: none;">
+            ${mapControlsHtml}
+            <div style="position: absolute; bottom: 10px; right: 10px; display: flex; gap: 8px; z-index: 10; pointer-events: none; flex-direction: column; align-items: flex-end;">
+                ${window.appState.mapFilter ? `
+                <button onclick="clearMapFilter()" style="background: rgba(220,53,69,0.9); color: #fff; padding: 8px 12px; border-radius: 6px; font-size: 0.85rem; border: none; cursor: pointer; pointer-events: auto; margin-bottom: 8px; backdrop-filter: blur(10px);">
+                    ✕ Clear Filter
+                </button>
+                ` : ''}
+                <button onclick="toggleMapSelectionMode()" style="background: rgba(0,0,0,0.85); color: #4a9eff; padding: 8px 12px; border-radius: 6px; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.2); cursor: pointer; pointer-events: auto; backdrop-filter: blur(10px); margin-bottom: 8px;">
+                    ${window.appState.mapSelectionMode ? '✓' : '📍'} Select Location
+                </button>
                 <a href="${earthLink}" target="_blank" 
                    style="background: rgba(0,0,0,0.85); color: #4a9eff; padding: 10px 14px; border-radius: 8px; font-size: 0.9rem; text-decoration: none; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2); transition: all 0.3s ease; display: inline-block; pointer-events: auto; box-shadow: 0 4px 15px rgba(0,0,0,0.3);"
                    onmouseover="this.style.background='rgba(74,158,255,0.4)'; this.style.color='#fff'; this.style.transform='translateY(-2px)';"
@@ -878,6 +1060,10 @@ function createGlobeVisualization(container, continent, coords) {
     `;
     
     container.innerHTML = html;
+    
+    // Note: Google Maps iframe doesn't support click events directly
+    // For full map selection, we'd need Google Maps API or a different approach
+    // For now, we'll add a workaround using a clickable overlay or external link
 }
 
 // Highlight an event on the timeline by ID
