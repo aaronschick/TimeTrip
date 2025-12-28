@@ -83,7 +83,7 @@ def get_timeline():
         # Update timeline generator's filtered data
         timeline_gen.df = filtered_data
         
-        fig_json = timeline_gen.make_figure_json(start_year, end_year, enable_clustering=enable_clustering)
+        fig_json = timeline_gen.make_figure_json(start_year, end_year, enable_clustering=enable_clustering, enable_spans=enable_spans)
         
         # Add metadata about event count
         if 'layout' not in fig_json:

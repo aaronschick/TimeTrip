@@ -397,20 +397,26 @@ class TimelineGenerator:
                 hover_text = hover_templates[row_idx] if row_idx < len(hover_templates) else ''
                 customdata = customdata_list[row_idx] if row_idx < len(customdata_list) else None
                 
-                is_span = should_render_as_span(row, time_range)
+                # Only check for spans if spans are enabled
+                is_span = False
+                if enable_spans:
+                    is_span = should_render_as_span(row, time_range)
+                    if is_span:
+                        # Find lane assignment
+                        span_info = next((s for s in spans_data if s['index'] == orig_idx), None)
+                        if span_info:
+                            lane = span_info['lane']
+                            individual_spans.append({
+                                'row': row,
+                                'hover': hover_text,
+                                'customdata': customdata,
+                                'lane': lane
+                            })
+                        else:
+                            # Span detected but not in spans_data (shouldn't happen, but fallback to point)
+                            is_span = False
                 
-                if is_span:
-                    # Find lane assignment
-                    span_info = next((s for s in spans_data if s['index'] == orig_idx), None)
-                    lane = span_info['lane'] if span_info else 0
-                    
-                    individual_spans.append({
-                        'row': row,
-                        'hover': hover_text,
-                        'customdata': customdata,
-                        'lane': lane
-                    })
-                else:
+                if not is_span:
                     individual_points.append({
                         'row': row,
                         'hover': hover_text,
