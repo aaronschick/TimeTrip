@@ -714,20 +714,22 @@ function handlePlotlyClick(data) {
 }
 
 // Continent to coordinates mapping for Google Earth
+// Zoom levels: 1 = world, 2 = continent, 3 = country, 4 = region, 5 = city
+// Using lower zoom values for better continent-level view
 const CONTINENT_COORDINATES = {
-    'Global': { lat: 0, lng: 0, zoom: 2 },
-    'Africa': { lat: 8.7832, lng: 34.5085, zoom: 3 },
-    'Asia': { lat: 34.0479, lng: 100.6197, zoom: 3 },
-    'Europe': { lat: 54.5260, lng: 15.2551, zoom: 4 },
-    'North America': { lat: 54.5260, lng: -105.2551, zoom: 3 },
-    'South America': { lat: -14.2350, lng: -51.9253, zoom: 3 },
-    'Australia': { lat: -25.2744, lng: 133.7751, zoom: 4 },
-    'Oceania': { lat: -8.7832, lng: 124.5085, zoom: 3 },
-    'Antarctica': { lat: -75.2509, lng: -0.0713, zoom: 3 },
-    'Americas': { lat: 20.0, lng: -80.0, zoom: 3 },
-    'Middle East': { lat: 29.2985, lng: 42.5503, zoom: 4 },
-    'Mediterranean': { lat: 38.0, lng: 20.0, zoom: 4 },
-    'Eurasia': { lat: 50.0, lng: 50.0, zoom: 2 }
+    'Global': { lat: 0, lng: 0, zoom: 1 },
+    'Africa': { lat: 8.7832, lng: 34.5085, zoom: 2 },
+    'Asia': { lat: 34.0479, lng: 100.6197, zoom: 2 },
+    'Europe': { lat: 54.5260, lng: 15.2551, zoom: 3 },
+    'North America': { lat: 54.5260, lng: -105.2551, zoom: 2 },
+    'South America': { lat: -14.2350, lng: -51.9253, zoom: 2 },
+    'Australia': { lat: -25.2744, lng: 133.7751, zoom: 3 },
+    'Oceania': { lat: -8.7832, lng: 124.5085, zoom: 2 },
+    'Antarctica': { lat: -75.2509, lng: -0.0713, zoom: 2 },
+    'Americas': { lat: 20.0, lng: -80.0, zoom: 2 },
+    'Middle East': { lat: 29.2985, lng: 42.5503, zoom: 3 },
+    'Mediterranean': { lat: 38.0, lng: 20.0, zoom: 3 },
+    'Eurasia': { lat: 50.0, lng: 50.0, zoom: 1 }
 };
 
 // Populate event details sidebar
@@ -843,6 +845,8 @@ function createGlobeVisualization(container, continent, coords) {
     // Create Google Maps embed iframe
     // Using Google Maps embed URL format (works for viewing without API key in some cases)
     // If embed doesn't work, we'll fall back to a clickable preview
+    // Note: Google Maps zoom levels: 1=world, 2=continent, 3=country, 4=region, 5=city
+    // For Google Earth Web, we use the zoom parameter directly
     const embedUrl = `https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d${Math.floor(Math.pow(2, coords.zoom) * 100)}!2d${coords.lng}!3d${coords.lat}!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e0!3m2!1sen!2sus!4v${Date.now()}!5m2!1sen!2sus`;
     
     const html = `

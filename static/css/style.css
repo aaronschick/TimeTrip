@@ -396,6 +396,12 @@ header h1 {
     display: none !important;
 }
 
+/* Search Container - Ensure proper positioning context */
+.search-container {
+    position: relative;
+    z-index: 10001;
+}
+
 /* Search Results Dropdown */
 .search-results {
     position: absolute;
@@ -410,7 +416,7 @@ header h1 {
     margin-top: 5px;
     max-height: 300px;
     overflow-y: auto;
-    z-index: 1000;
+    z-index: 10000;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
 }
 
