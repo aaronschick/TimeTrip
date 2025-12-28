@@ -713,6 +713,23 @@ function handlePlotlyClick(data) {
     populateEventDetails(customdata);
 }
 
+// Continent to coordinates mapping for Google Earth
+const CONTINENT_COORDINATES = {
+    'Global': { lat: 0, lng: 0, zoom: 2 },
+    'Africa': { lat: 8.7832, lng: 34.5085, zoom: 3 },
+    'Asia': { lat: 34.0479, lng: 100.6197, zoom: 3 },
+    'Europe': { lat: 54.5260, lng: 15.2551, zoom: 4 },
+    'North America': { lat: 54.5260, lng: -105.2551, zoom: 3 },
+    'South America': { lat: -14.2350, lng: -51.9253, zoom: 3 },
+    'Australia': { lat: -25.2744, lng: 133.7751, zoom: 4 },
+    'Oceania': { lat: -8.7832, lng: 124.5085, zoom: 3 },
+    'Antarctica': { lat: -75.2509, lng: -0.0713, zoom: 3 },
+    'Americas': { lat: 20.0, lng: -80.0, zoom: 3 },
+    'Middle East': { lat: 29.2985, lng: 42.5503, zoom: 4 },
+    'Mediterranean': { lat: 38.0, lng: 20.0, zoom: 4 },
+    'Eurasia': { lat: 50.0, lng: 50.0, zoom: 2 }
+};
+
 // Populate event details sidebar
 function populateEventDetails(eventData) {
     const detailsContainer = document.getElementById('event-details-content');
@@ -766,6 +783,97 @@ function populateEventDetails(eventData) {
     `;
     
     detailsContainer.innerHTML = html;
+    
+    // Update Earth view
+    updateEarthView(event.continent || 'Global');
+}
+
+// Update Earth view based on continent
+function updateEarthView(continent) {
+    const earthContainer = document.getElementById('earth-container');
+    if (!earthContainer) return;
+    
+    // Normalize continent name (handle variations)
+    const normalizedContinent = normalizeContinentName(continent);
+    const coords = CONTINENT_COORDINATES[normalizedContinent] || CONTINENT_COORDINATES['Global'];
+    
+    // Create or update the Earth visualization
+    createGlobeVisualization(earthContainer, normalizedContinent, coords);
+}
+
+// Normalize continent name to match our coordinate map
+function normalizeContinentName(continent) {
+    if (!continent) return 'Global';
+    
+    const normalized = continent.trim();
+    
+    // Handle variations
+    const mapping = {
+        'africa': 'Africa',
+        'asia': 'Asia',
+        'europe': 'Europe',
+        'north america': 'North America',
+        'south america': 'South America',
+        'australia': 'Australia',
+        'oceania': 'Oceania',
+        'antarctica': 'Antarctica',
+        'americas': 'Americas',
+        'middle east': 'Middle East',
+        'mediterranean': 'Mediterranean',
+        'eurasia': 'Eurasia',
+        'global': 'Global'
+    };
+    
+    return mapping[normalized.toLowerCase()] || normalized;
+}
+
+// Create a simple globe visualization (no heavy dependencies)
+function createGlobeVisualization(container, continent, coords) {
+    // Clear container
+    container.innerHTML = '';
+    
+    // Create Google Maps embed with satellite/terrain view
+    // Note: Google Maps embed requires API key for full functionality
+    // We'll use a direct Google Maps URL that works without API key
+    // and provide a link to Google Earth for full 3D experience
+    
+    const earthLink = `https://earth.google.com/web/@${coords.lat},${coords.lng},${coords.zoom}a,0y,0h,0t,0r`;
+    const mapsLink = `https://www.google.com/maps/@${coords.lat},${coords.lng},${coords.zoom}z/data=!3m1!1e3`;
+    
+    // Create Google Maps embed iframe
+    // Using Google Maps embed URL format (works for viewing without API key in some cases)
+    // If embed doesn't work, we'll fall back to a clickable preview
+    const embedUrl = `https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d${Math.floor(Math.pow(2, coords.zoom) * 100)}!2d${coords.lng}!3d${coords.lat}!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e0!3m2!1sen!2sus!4v${Date.now()}!5m2!1sen!2sus`;
+    
+    const html = `
+        <div style="position: relative; width: 100%; height: 100%; border-radius: 8px; overflow: hidden;">
+            <iframe 
+                id="earth-iframe"
+                src="${embedUrl}"
+                width="100%"
+                height="100%"
+                style="border:0; border-radius: 8px;"
+                allowfullscreen=""
+                loading="lazy"
+                referrerpolicy="no-referrer-when-downgrade"
+                title="Earth View - ${escapeHtml(continent)}"
+                onerror="this.parentElement.innerHTML='<div style=\\'padding: 40px; text-align: center; color: rgba(255,255,255,0.7);\\'><div style=\\'font-size: 3rem; margin-bottom: 10px;\\'>🌍</div><p>${escapeHtml(continent)}</p><a href=\\'${mapsLink}\\' target=\\'_blank\\' style=\\'color: #4a9eff; text-decoration: none;\\'>Open in Google Maps</a></div>'">
+            </iframe>
+            <div style="position: absolute; bottom: 10px; right: 10px; display: flex; gap: 8px; z-index: 10; pointer-events: none;">
+                <a href="${earthLink}" target="_blank" 
+                   style="background: rgba(0,0,0,0.85); color: #4a9eff; padding: 10px 14px; border-radius: 8px; font-size: 0.9rem; text-decoration: none; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2); transition: all 0.3s ease; display: inline-block; pointer-events: auto; box-shadow: 0 4px 15px rgba(0,0,0,0.3);"
+                   onmouseover="this.style.background='rgba(74,158,255,0.4)'; this.style.color='#fff'; this.style.transform='translateY(-2px)';"
+                   onmouseout="this.style.background='rgba(0,0,0,0.85)'; this.style.color='#4a9eff'; this.style.transform='translateY(0)';">
+                    🌍 Google Earth
+                </a>
+            </div>
+            <div style="position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.7); padding: 8px 12px; border-radius: 6px; font-size: 0.85rem; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2); pointer-events: none; z-index: 10;">
+                <strong>${escapeHtml(continent)}</strong>
+            </div>
+        </div>
+    `;
+    
+    container.innerHTML = html;
 }
 
 // Highlight an event on the timeline by ID
@@ -823,7 +931,7 @@ function highlightEventOnTimeline(eventId, eventData) {
                     // Add the highlight trace
                     Plotly.addTraces(graphDiv, highlightTrace);
                     
-                    // Also populate event details
+                    // Also populate event details (which will update Earth view)
                     if (eventData) {
                         populateEventDetails(eventData);
                     } else if (customdata) {
