@@ -107,15 +107,32 @@ def debug():
         filtered = timeline_gen.get_filtered_data(default_start, default_end)
         
         # Check for missing data
-        missing_years = timeline_gen.df['year'].isna().sum() if 'year' in timeline_gen.df.columns else 0
-        missing_categories = timeline_gen.df['category'].isna().sum() if 'category' in timeline_gen.df.columns else 0
+        missing_years = timeline_gen.df['year'].isna().sum() if not timeline_gen.df.empty and 'year' in timeline_gen.df.columns else 0
+        missing_categories = timeline_gen.df['category'].isna().sum() if not timeline_gen.df.empty and 'category' in timeline_gen.df.columns else 0
         
         # Database info
         db_count = TimelineEvent.query.count()
         
+        # Check if dataframe has valid year data
+        valid_year_data = 0
+        if not timeline_gen.df.empty and 'start_year' in timeline_gen.df.columns and 'end_year' in timeline_gen.df.columns:
+            valid_year_data = len(timeline_gen.df[
+                (timeline_gen.df['start_year'].notna()) & 
+                (timeline_gen.df['end_year'].notna())
+            ])
+        
+        # Test figure generation
+        try:
+            test_fig = timeline_gen.make_figure_json(default_start, default_end)
+            figure_has_data = test_fig.get('data') and len(test_fig.get('data', [])) > 0
+        except Exception as fig_error:
+            figure_has_data = False
+            figure_error_msg = str(fig_error)
+        
         return jsonify({
             'total_rows': total_rows,
             'db_count': db_count,
+            'valid_year_data': valid_year_data,
             'filtered_rows': len(filtered),
             'missing_years': int(missing_years),
             'missing_categories': int(missing_categories),
@@ -123,10 +140,14 @@ def debug():
             'sample': sample_data,
             'database_url': Config.SQLALCHEMY_DATABASE_URI.split('@')[-1] if '@' in Config.SQLALCHEMY_DATABASE_URI else 'sqlite',
             'year_range': {
-                'min': float(timeline_gen.df['start_year'].min()) if not timeline_gen.df.empty and 'start_year' in timeline_gen.df.columns else 0,
-                'max': float(timeline_gen.df['end_year'].max()) if not timeline_gen.df.empty and 'end_year' in timeline_gen.df.columns else 0
+                'min': float(timeline_gen.df['start_year'].min()) if not timeline_gen.df.empty and 'start_year' in timeline_gen.df.columns and timeline_gen.df['start_year'].notna().any() else None,
+                'max': float(timeline_gen.df['end_year'].max()) if not timeline_gen.df.empty and 'end_year' in timeline_gen.df.columns and timeline_gen.df['end_year'].notna().any() else None
             },
-            'categories': timeline_gen.df['category'].value_counts().to_dict() if 'category' in timeline_gen.df.columns and not timeline_gen.df.empty else {}
+            'categories': timeline_gen.df['category'].value_counts().to_dict() if 'category' in timeline_gen.df.columns and not timeline_gen.df.empty else {},
+            'figure_generation': {
+                'success': figure_has_data if 'figure_has_data' in locals() else False,
+                'error': figure_error_msg if 'figure_error_msg' in locals() else None
+            }
         })
     except Exception as e:
         import traceback

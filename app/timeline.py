@@ -50,24 +50,36 @@ class TimelineGenerator:
                 # Convert to list of dicts
                 data = [event.to_dict() for event in events]
                 df = pd.DataFrame(data)
+                
+                # Debug: log data loading
+                print(f"DEBUG: Loaded {len(df)} events from database")
+                if not df.empty:
+                    print(f"DEBUG: Columns: {list(df.columns)}")
+                    print(f"DEBUG: Sample start_year: {df['start_year'].head(3).tolist() if 'start_year' in df.columns else 'N/A'}")
         
         if df.empty:
             # Return empty dataframe with expected columns
             df = pd.DataFrame(columns=['id', 'title', 'category', 'continent', 'start_year', 'end_year', 'description', 'start_date', 'end_date'])
         
         # Ensure year columns exist and are numeric
-        if 'start_year' in df.columns:
-            df["start_year"] = pd.to_numeric(df["start_year"], errors='coerce')
-        else:
-            df["start_year"] = None
+        if not df.empty:
+            if 'start_year' in df.columns:
+                df["start_year"] = pd.to_numeric(df["start_year"], errors='coerce')
+            else:
+                df["start_year"] = None
+                
+            if 'end_year' in df.columns:
+                df["end_year"] = pd.to_numeric(df["end_year"], errors='coerce')
+            else:
+                df["end_year"] = None
             
-        if 'end_year' in df.columns:
-            df["end_year"] = pd.to_numeric(df["end_year"], errors='coerce')
+            # Convenience column for numeric plotting
+            df["year"] = df["start_year"]
         else:
+            # Empty dataframe - set default columns
+            df["start_year"] = None
             df["end_year"] = None
-        
-        # Convenience column for numeric plotting
-        df["year"] = df["start_year"]
+            df["year"] = None
         
         # Parse dates where possible; out-of-range or invalid => NaT
         if "start_date" in df.columns:
@@ -97,7 +109,16 @@ class TimelineGenerator:
     
     def get_filtered_data(self, start_year, end_year):
         """Get filtered data for the given year range"""
-        mask = (self.df["end_year"] >= start_year) & (self.df["start_year"] <= end_year)
+        if self.df.empty or 'start_year' not in self.df.columns or 'end_year' not in self.df.columns:
+            return pd.DataFrame()
+        
+        # Handle NaN values in year columns
+        mask = (
+            (self.df["end_year"].notna()) & 
+            (self.df["start_year"].notna()) &
+            (self.df["end_year"] >= start_year) & 
+            (self.df["start_year"] <= end_year)
+        )
         return self.df[mask].copy()
     
     def make_figure_json(self, start_year, end_year):

@@ -161,12 +161,32 @@ async function loadTimeline(startYear, endYear) {
         const figureData = await response.json();
         console.log('Received figure data:', {
             dataLength: figureData.data?.length || 0,
-            layout: figureData.layout?.title?.text || 'No title'
+            layout: figureData.layout?.title?.text || 'No title',
+            metadata: figureData._metadata || 'No metadata'
         });
         
-        // Check if we have data
+        // Check if we have metadata indicating no data
+        if (figureData._metadata && figureData._metadata.filtered_events === 0) {
+            console.warn('No events in filtered range');
+            showError(`No events found in the time range ${startYear.toLocaleString()} to ${endYear.toLocaleString()}. Try adjusting the year range or check if events are in the database.`);
+            hideLoading();
+            return;
+        }
+        
+        // Check if we have data traces
         if (!figureData.data || figureData.data.length === 0) {
             console.warn('No data traces in figure');
+            // Check if it's an empty figure with annotation
+            if (figureData.layout && figureData.layout.annotations) {
+                // This is an intentional empty figure, render it
+                Plotly.newPlot(timelineContainer, figureData.data || [], figureData.layout, {
+                    responsive: true,
+                    displayModeBar: true,
+                    modeBarButtonsToRemove: ['lasso2d', 'select2d'],
+                });
+                hideLoading();
+                return;
+            }
             showError('No data found for this time range. Try adjusting the year range.');
             hideLoading();
             return;
