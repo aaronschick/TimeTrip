@@ -45,6 +45,7 @@ def should_render_as_span(row, time_range, min_duration_threshold=None):
 def pack_intervals(intervals):
     """
     Pack overlapping intervals into lanes using a greedy algorithm.
+    Ensures overlapping intervals are stacked in different lanes.
     
     Args:
         intervals: List of dicts with 'start', 'end', and 'data' keys
@@ -59,27 +60,37 @@ def pack_intervals(intervals):
     # Sort intervals by start time, then by duration (shorter first for better packing)
     sorted_intervals = sorted(enumerate(intervals), key=lambda x: (x[1]['start'], x[1]['end'] - x[1]['start']))
     
-    # Track end times for each lane
-    lane_ends = []
+    # Track all intervals in each lane (not just end times)
+    lanes = []  # List of lists, each containing intervals in that lane
     lane_assignments = {}
     
     for orig_idx, interval in sorted_intervals:
         start = interval['start']
         end = interval['end']
         
-        # Find first lane that doesn't overlap
+        # Find first lane where this interval doesn't overlap with any existing interval
         assigned_lane = None
-        for lane_idx, lane_end in enumerate(lane_ends):
-            if lane_end <= start:
-                # This lane is free
+        for lane_idx, lane_intervals in enumerate(lanes):
+            # Check if this interval overlaps with any interval in this lane
+            overlaps = False
+            for existing_interval in lane_intervals:
+                existing_start = existing_interval['start']
+                existing_end = existing_interval['end']
+                # Intervals overlap if: start < existing_end AND end > existing_start
+                if start < existing_end and end > existing_start:
+                    overlaps = True
+                    break
+            
+            if not overlaps:
+                # This lane is free - no overlaps
                 assigned_lane = lane_idx
-                lane_ends[lane_idx] = end
+                lane_intervals.append(interval)
                 break
         
         # If no free lane, create a new one
         if assigned_lane is None:
-            assigned_lane = len(lane_ends)
-            lane_ends.append(end)
+            assigned_lane = len(lanes)
+            lanes.append([interval])
         
         lane_assignments[orig_idx] = assigned_lane
     

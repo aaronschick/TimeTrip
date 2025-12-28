@@ -282,10 +282,14 @@ class TimelineGenerator:
         
         # Create category to numeric y-position mapping (for lane offsets)
         category_to_y = {cat: idx for idx, cat in enumerate(categories)}
-        lane_offset = 0.12  # Vertical offset per lane (as fraction of category spacing)
+        lane_offset = 0.15  # Vertical offset per lane (as fraction of category spacing)
+        # Increased from 0.12 to 0.15 for better visual separation
         
         # Calculate time range for span rendering decisions
         time_range = end_year - start_year
+        
+        # Track maximum lanes needed across all categories for y-axis range
+        max_lanes = 0
         
         # Create a trace for each category to ensure all points are included
         for idx, cat in enumerate(categories):
@@ -294,6 +298,10 @@ class TimelineGenerator:
             # Separate spans and points, and pack spans into lanes (if spans enabled)
             if enable_spans:
                 spans_data, points_df, lane_assignments = prepare_spans_and_points(cat_data, time_range, cat)
+                # Track maximum lanes for this category
+                if spans_data:
+                    max_lanes_for_cat = max((s.get('lane', 0) for s in spans_data), default=0) + 1
+                    max_lanes = max(max_lanes, max_lanes_for_cat)
             else:
                 # If spans disabled, treat all events as points
                 spans_data = []
@@ -543,9 +551,15 @@ class TimelineGenerator:
             col=1,
         )
         
+        # Calculate y-axis range to accommodate lane stacking
+        # Add padding for lanes: max_lanes * lane_offset above the top category
+        y_min = -0.5
+        y_max = len(categories) - 0.5 + (max_lanes * lane_offset)
+        
         fig.update_yaxes(
             title_text="Category",
             autorange="reversed",
+            range=[y_max, y_min],  # Reversed: higher numbers at top
             tickmode='array',
             tickvals=list(range(len(categories))),
             ticktext=[str(cat) for cat in categories],
