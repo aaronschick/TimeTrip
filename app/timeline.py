@@ -708,8 +708,8 @@ class TimelineGenerator:
                 color='rgba(255, 255, 255, 0.95)'
             ),
             hoverlabel=dict(
-                bgcolor='rgba(255, 255, 255, 0.12)',
-                bordercolor='rgba(255, 255, 255, 0.2)',
+                bgcolor='rgba(0, 0, 0, 0.85)',
+                bordercolor='rgba(255, 255, 255, 0.3)',
                 font_size=13,
                 font_family="'Inter', sans-serif",
                 font_color='rgba(255, 255, 255, 0.95)'
