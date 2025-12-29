@@ -595,11 +595,9 @@ async function loadEventsList() {
                 <div class="event-info">
                     <div class="event-title">${escapeHtml(event.title || 'Untitled')}</div>
                     <div class="event-details">
-                        <strong>Category:</strong> ${escapeHtml(event.category || 'N/A')} | 
-                        <strong>Continent:</strong> ${escapeHtml(event.continent || 'N/A')}
-                    </div>
-                    <div class="event-details">
-                        <strong>Years:</strong> ${formatYear(event.start_year)} - ${formatYear(event.end_year || event.start_year)}
+                        <span class="event-category-chip">${escapeHtml(event.category || 'N/A')}</span>
+                        <span class="event-time-chip">${formatYear(event.start_year)} - ${formatYear(event.end_year || event.start_year)}</span>
+                        ${event.continent && event.continent !== 'Global' ? `<span style="opacity: 0.7;">${escapeHtml(event.continent)}</span>` : ''}
                     </div>
                     ${event.description ? `<div class="event-description">${escapeHtml(event.description)}</div>` : ''}
                 </div>

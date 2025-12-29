@@ -105,59 +105,72 @@
     <div id="add-event-modal" class="modal hidden">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Add New Event</h2>
+                <div>
+                    <h2>Add New Event</h2>
+                    <p class="modal-subtitle">Create a new timeline event</p>
+                </div>
                 <button class="modal-close" id="close-add-modal">&times;</button>
             </div>
-            <form id="add-event-form">
-                <div class="form-group">
-                    <label for="event-title">Title *</label>
-                    <input type="text" id="event-title" required>
+            <div class="modal-body">
+                <form id="add-event-form">
+                <!-- Basics Section -->
+                <div class="form-section">
+                    <h3>Basics</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="event-title">Title *</label>
+                            <input type="text" id="event-title" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="event-category">Category *</label>
+                            <select id="event-category" required>
+                                <option value="">Select a category</option>
+                                <option value="era">Era</option>
+                                <option value="migration">Migration</option>
+                                <option value="civilization">Civilization</option>
+                                <option value="empire">Empire</option>
+                                <option value="war">War</option>
+                                <option value="religion">Religion</option>
+                                <option value="biblical">Biblical</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="event-continent">Continent</label>
+                        <input type="text" id="event-continent" value="Global" placeholder="Global, Africa, Europe, etc.">
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label for="event-category">Category *</label>
-                    <select id="event-category" required>
-                        <option value="">Select a category</option>
-                        <option value="era">Era</option>
-                        <option value="migration">Migration</option>
-                        <option value="civilization">Civilization</option>
-                        <option value="empire">Empire</option>
-                        <option value="war">War</option>
-                        <option value="religion">Religion</option>
-                        <option value="biblical">Biblical</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="event-continent">Continent</label>
-                    <input type="text" id="event-continent" value="Global" placeholder="Global, Africa, Europe, etc.">
-                </div>
-                <div class="form-group">
-                    <label for="event-start-year">Start Year *</label>
-                    <input type="number" id="event-start-year" required step="1" placeholder="-5000000000">
-                </div>
-                <div class="form-group">
-                    <label for="event-end-year">End Year</label>
-                    <input type="number" id="event-end-year" step="1" placeholder="Leave empty to use start year">
-                </div>
-                <div class="form-group">
-                    <label for="event-description">Description</label>
-                    <textarea id="event-description" rows="3" placeholder="Optional description"></textarea>
+                
+                <!-- Time Section -->
+                <div class="form-section">
+                    <h3>Time</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="event-start-year">Start Year *</label>
+                            <input type="number" id="event-start-year" required step="1" placeholder="-5000000000" class="tabular-nums">
+                        </div>
+                        <div class="form-group">
+                            <label for="event-end-year">End Year</label>
+                            <input type="number" id="event-end-year" step="1" placeholder="Leave empty to use start year" class="tabular-nums">
+                        </div>
+                    </div>
                 </div>
                 
                 <!-- Location Section -->
                 <div class="form-section">
-                    <h3 style="margin-bottom: 15px; font-size: 1.1rem; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 8px;">Location (Optional)</h3>
+                    <h3>Location (Optional)</h3>
                     <div class="form-group">
                         <label for="event-location-label">Location Label</label>
                         <input type="text" id="event-location-label" placeholder="e.g., Rome, Italy">
                     </div>
                     <div class="form-row">
-                        <div class="form-group" style="flex: 1;">
+                        <div class="form-group">
                             <label for="event-lat">Latitude</label>
-                            <input type="number" id="event-lat" step="any" min="-90" max="90" placeholder="-90 to 90">
+                            <input type="number" id="event-lat" step="any" min="-90" max="90" placeholder="-90 to 90" class="tabular-nums">
                         </div>
-                        <div class="form-group" style="flex: 1;">
+                        <div class="form-group">
                             <label for="event-lon">Longitude</label>
-                            <input type="number" id="event-lon" step="any" min="-180" max="180" placeholder="-180 to 180">
+                            <input type="number" id="event-lon" step="any" min="-180" max="180" placeholder="-180 to 180" class="tabular-nums">
                         </div>
                     </div>
                     <div class="form-group">
@@ -168,20 +181,29 @@
                             <option value="disputed">Disputed</option>
                         </select>
                     </div>
-                    <details style="margin-top: 10px;">
-                        <summary style="cursor: pointer; color: rgba(255,255,255,0.7); font-size: 0.9rem; padding: 5px;">Advanced: GeoJSON</summary>
-                        <div class="form-group" style="margin-top: 10px;">
+                    <details>
+                        <summary>Advanced: GeoJSON</summary>
+                        <div class="form-group">
                             <label for="event-geometry">GeoJSON Geometry</label>
                             <textarea id="event-geometry" rows="4" placeholder='{"type": "Point", "coordinates": [lon, lat]}'></textarea>
                         </div>
                     </details>
                 </div>
                 
-                <div class="form-actions">
-                    <button type="submit" class="btn-primary">Add Event</button>
-                    <button type="button" class="btn-secondary" id="cancel-add-event">Cancel</button>
+                <!-- Notes Section -->
+                <div class="form-section">
+                    <h3>Notes</h3>
+                    <div class="form-group">
+                        <label for="event-description">Description</label>
+                        <textarea id="event-description" rows="3" placeholder="Optional description"></textarea>
+                    </div>
                 </div>
-            </form>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="submit" form="add-event-form" class="btn-primary">Add Event</button>
+                <button type="button" class="btn-secondary" id="cancel-add-event">Cancel</button>
+            </div>
         </div>
     </div>
     
@@ -189,11 +211,19 @@
     <div id="manage-events-modal" class="modal hidden">
         <div class="modal-content modal-large">
             <div class="modal-header">
-                <h2>Manage Events</h2>
+                <div>
+                    <h2>Manage Events</h2>
+                    <p class="modal-subtitle">View and manage all timeline events</p>
+                </div>
                 <button class="modal-close" id="close-manage-modal">&times;</button>
             </div>
-            <div id="events-list-container">
-                <div class="loading">Loading events...</div>
+            <div class="modal-body">
+                <div id="events-list-container">
+                    <div class="loading">Loading events...</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="hideModal(manageEventsModal)">Close</button>
             </div>
         </div>
     </div>
