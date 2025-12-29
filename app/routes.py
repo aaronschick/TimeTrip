@@ -31,14 +31,14 @@ def index():
 @bp.route('/api/timeline')
 def get_timeline():
     """API endpoint to generate timeline figure"""
-    start_year = request.args.get('start_year', type=int, default=-5_000_000_000)
+    start_year = request.args.get('start_year', type=int, default=0)
     end_year = request.args.get('end_year', type=int, default=2025)
     
     # Get clustering parameter (default: True)
     enable_clustering = request.args.get('enable_clustering', 'true').lower() == 'true'
     
-    # Get span rendering parameter (default: True)
-    enable_spans = request.args.get('enable_spans', 'true').lower() == 'true'
+    # Get span rendering parameter (default: False)
+    enable_spans = request.args.get('enable_spans', 'false').lower() == 'true'
     
     # Get map filter parameters
     filter_lat = request.args.get('filter_lat', type=float)
@@ -109,7 +109,7 @@ def get_timeline():
 @bp.route('/api/data')
 def get_data():
     """API endpoint to get raw timeline data"""
-    start_year = request.args.get('start_year', type=int, default=-5_000_000_000)
+    start_year = request.args.get('start_year', type=int, default=0)
     end_year = request.args.get('end_year', type=int, default=2025)
     
     try:

@@ -1,6 +1,6 @@
 // Timeline application JavaScript
 
-const DEFAULT_START_YEAR = -5000000000;
+const DEFAULT_START_YEAR = 0;
 const DEFAULT_END_YEAR = 2025;
 
 let currentFigure = null;
@@ -34,7 +34,7 @@ let clusteringEnabled = true;
 let clusterInfo = {};  // Store cluster info from API response
 
 // Span rendering state
-let spansEnabled = true;  // Whether to render events with duration as spans
+let spansEnabled = false;  // Whether to render events with duration as spans (default: off)
 
 // Map selection functions
 function toggleMapSelectionMode() {
