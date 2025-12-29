@@ -1318,17 +1318,97 @@ function clearEventHighlight() {
     delete window.highlightedEventId;
 }
 
-// Enable fluid scrolling with mouse wheel/trackpad
+// Enable fluid scrolling with horizontal mouse movement (click and drag)
 function enableFluidScrolling(graphDiv) {
     if (!graphDiv) return;
     
+    let isDragging = false;
+    let lastMouseX = 0;
     let scrollTimeout = null;
     
-    // Handle wheel events (mouse wheel and trackpad)
-    // Use DOM event listener, not Plotly's event system
+    // Handle mouse down - start dragging
+    graphDiv.addEventListener('mousedown', (event) => {
+        // Only start dragging if clicking on the plot area (not on UI elements)
+        if (event.target.closest('.js-plotly-plot') || event.target.closest('.plotly')) {
+            isDragging = true;
+            lastMouseX = event.clientX;
+            graphDiv.style.cursor = 'grabbing';
+            event.preventDefault();
+        }
+    });
+    
+    // Handle mouse move - pan timeline horizontally
+    graphDiv.addEventListener('mousemove', (event) => {
+        if (!isDragging) return;
+        
+        // Only handle if we have valid layout data
+        if (!graphDiv.layout || !graphDiv.layout.xaxis || !graphDiv.layout.xaxis.range) {
+            return;
+        }
+        
+        event.preventDefault();
+        
+        // Calculate horizontal mouse movement
+        const deltaX = event.clientX - lastMouseX;
+        lastMouseX = event.clientX;
+        
+        // Get current axis ranges
+        const currentRange = graphDiv.layout.xaxis.range;
+        const currentStart = currentRange[0];
+        const currentEnd = currentRange[1];
+        const currentSpan = currentEnd - currentStart;
+        
+        // Calculate pan amount based on horizontal mouse movement
+        // Negative deltaX (moving left) should pan left (show earlier years)
+        // Positive deltaX (moving right) should pan right (show later years)
+        const panFactor = currentSpan / graphDiv.getBoundingClientRect().width;
+        const panAmount = -deltaX * panFactor; // Negative for natural drag direction
+        
+        const newStart = currentStart + panAmount;
+        const newEnd = currentEnd + panAmount;
+        
+        // Apply pan
+        Plotly.relayout(graphDiv, {
+            'xaxis.range': [newStart, newEnd]
+        });
+        
+        // Update backdrop after pan (debounced)
+        clearTimeout(scrollTimeout);
+        scrollTimeout = setTimeout(() => {
+            const newRange = graphDiv.layout.xaxis.range;
+            if (newRange && newRange[0] !== undefined && newRange[1] !== undefined) {
+                const midYear = (newRange[0] + newRange[1]) / 2;
+                if (typeof setBackdropForYear === 'function') {
+                    setBackdropForYear(midYear);
+                }
+            }
+        }, 150);
+    });
+    
+    // Handle mouse up - stop dragging
+    document.addEventListener('mouseup', () => {
+        if (isDragging) {
+            isDragging = false;
+            if (graphDiv) {
+                graphDiv.style.cursor = 'grab';
+            }
+        }
+    });
+    
+    // Set initial cursor style
+    graphDiv.style.cursor = 'grab';
+    
+    // Handle wheel events for zoom only (with modifier keys)
     graphDiv.addEventListener('wheel', (event) => {
         // Only handle if we have valid layout data
         if (!graphDiv.layout || !graphDiv.layout.xaxis || !graphDiv.layout.xaxis.range) {
+            return;
+        }
+        
+        // Only zoom with modifier keys (Ctrl/Cmd/Shift)
+        const isZoom = event.ctrlKey || event.metaKey || event.shiftKey;
+        if (!isZoom) {
+            // Allow normal scrolling for other elements
             return;
         }
         
@@ -1341,9 +1421,6 @@ function enableFluidScrolling(graphDiv) {
         const currentEnd = currentRange[1];
         const currentSpan = currentEnd - currentStart;
         
-        // Determine if zoom (with modifier) or pan (normal scroll)
-        const isZoom = event.ctrlKey || event.metaKey || event.shiftKey;
-        
         // Get scroll delta (normalize for different browsers/devices)
         let deltaY = event.deltaY;
         if (event.deltaMode === 1) {
@@ -1354,44 +1431,31 @@ function enableFluidScrolling(graphDiv) {
             deltaY *= 400;
         }
         
-        // Smooth scrolling factors (adjust for sensitivity)
-        const panFactor = 0.0008; // How much to pan per scroll unit
-        const zoomFactor = 0.03; // How much to zoom per scroll unit
+        // Zoom factor
+        const zoomFactor = 0.03;
         
-        if (isZoom) {
-            // Zoom in/out centered on mouse position
-            const rect = graphDiv.getBoundingClientRect();
-            const mouseX = event.clientX - rect.left;
-            const centerX = Math.max(0, Math.min(1, mouseX / rect.width));
-            
-            const centerYear = currentStart + (currentSpan * centerX);
-            
-            // Calculate zoom (negative because scroll down should zoom out)
-            const zoomAmount = -deltaY * zoomFactor;
-            const zoomRatio = 1 + zoomAmount;
-            
-            // Calculate new range centered on the zoom point
-            const newSpan = currentSpan * zoomRatio;
-            const newStart = centerYear - (newSpan * centerX);
-            const newEnd = centerYear + (newSpan * (1 - centerX));
-            
-            // Apply zoom
-            Plotly.relayout(graphDiv, {
-                'xaxis.range': [newStart, newEnd]
-            });
-        } else {
-            // Pan left/right (vertical scroll pans horizontally through time)
-            const panAmount = -deltaY * panFactor * currentSpan; // Negative for natural scrolling
-            const newStart = currentStart + panAmount;
-            const newEnd = currentEnd + panAmount;
-            
-            // Apply pan
-            Plotly.relayout(graphDiv, {
-                'xaxis.range': [newStart, newEnd]
-            });
-        }
+        // Zoom in/out centered on mouse position
+        const rect = graphDiv.getBoundingClientRect();
+        const mouseX = event.clientX - rect.left;
+        const centerX = Math.max(0, Math.min(1, mouseX / rect.width));
         
-        // Update backdrop after scroll (debounced)
+        const centerYear = currentStart + (currentSpan * centerX);
+        
+        // Calculate zoom (negative because scroll down should zoom out)
+        const zoomAmount = -deltaY * zoomFactor;
+        const zoomRatio = 1 + zoomAmount;
+        
+        // Calculate new range centered on the zoom point
+        const newSpan = currentSpan * zoomRatio;
+        const newStart = centerYear - (newSpan * centerX);
+        const newEnd = centerYear + (newSpan * (1 - centerX));
+        
+        // Apply zoom
+        Plotly.relayout(graphDiv, {
+            'xaxis.range': [newStart, newEnd]
+        });
+        
+        // Update backdrop after zoom (debounced)
         clearTimeout(scrollTimeout);
         scrollTimeout = setTimeout(() => {
             const newRange = graphDiv.layout.xaxis.range;
