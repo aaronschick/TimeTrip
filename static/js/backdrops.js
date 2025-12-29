@@ -109,6 +109,7 @@ function setBackdropForYear(midYear) {
         activeBackdrop.style.backgroundImage = backdrop.gradient;
     }
     activeBackdrop.style.backgroundSize = 'cover';
+    // Initial position for drift animation (will be animated by CSS)
     activeBackdrop.style.backgroundPosition = 'center';
     
     // Crossfade

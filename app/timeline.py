@@ -699,41 +699,46 @@ class TimelineGenerator:
             legend_title_text="Category",
             title_text="",  # Removed title to avoid overlap
             margin=dict(t=40, b=80, l=60, r=40),  # Reduced top margin since no title
-            # Observatory Mode: Transparent backgrounds
+            # Observatory Mode: Fully transparent backgrounds
             paper_bgcolor='rgba(0,0,0,0)',
             plot_bgcolor='rgba(0,0,0,0)',
             font=dict(
-                family="'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
+                family="'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
                 size=12,
-                color='rgba(255, 255, 255, 0.9)'
+                color='rgba(255, 255, 255, 0.95)'
             ),
             hoverlabel=dict(
-                bgcolor='rgba(0, 0, 0, 0.8)',
-                bordercolor='rgba(255, 255, 255, 0.3)',
-                font_size=13
+                bgcolor='rgba(255, 255, 255, 0.12)',
+                bordercolor='rgba(255, 255, 255, 0.2)',
+                font_size=13,
+                font_family="'Inter', sans-serif",
+                font_color='rgba(255, 255, 255, 0.95)'
             )
         )
         
-        # Update axes for Observatory Mode styling
+        # Update axes for Observatory Mode styling - softer, more refined
         fig.update_xaxes(
-            gridcolor='rgba(255, 255, 255, 0.1)',
-            zerolinecolor='rgba(255, 255, 255, 0.2)',
+            gridcolor='rgba(255, 255, 255, 0.08)',
+            zerolinecolor='rgba(255, 255, 255, 0.15)',
             showline=False,
+            tickfont=dict(family="'Inter', sans-serif", size=11, color='rgba(255, 255, 255, 0.7)'),
             row=1, col=1
         )
         fig.update_xaxes(
-            gridcolor='rgba(255, 255, 255, 0.1)',
-            zerolinecolor='rgba(255, 255, 255, 0.2)',
+            gridcolor='rgba(255, 255, 255, 0.08)',
+            zerolinecolor='rgba(255, 255, 255, 0.15)',
             showline=False,
+            tickfont=dict(family="'Inter', sans-serif", size=11, color='rgba(255, 255, 255, 0.7)'),
             row=2, col=1
         )
         fig.update_yaxes(
-            gridcolor='rgba(255, 255, 255, 0.05)',
+            gridcolor='rgba(255, 255, 255, 0.04)',
             showline=False,
+            tickfont=dict(family="'Inter', sans-serif", size=11, color='rgba(255, 255, 255, 0.7)'),
             row=1, col=1
         )
         fig.update_yaxes(
-            gridcolor='rgba(255, 255, 255, 0.05)',
+            gridcolor='rgba(255, 255, 255, 0.04)',
             showline=False,
             row=2, col=1
         )

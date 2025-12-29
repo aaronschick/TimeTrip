@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chronoverse - Universal Timeline</title>
+    <!-- Inter Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 </head>
@@ -54,22 +58,19 @@
                 <div id="timeline-container"></div>
             </div>
             <div class="details-section">
-                <div class="details-panel">
-                    <div class="details-card">
-                        <h3>Event Details</h3>
-                        <div id="event-details-content">
-                            <p class="placeholder-text">Click an event on the timeline to view details</p>
-                        </div>
+                <div class="event-details-card">
+                    <h3>Event Details</h3>
+                    <div id="event-details-content">
+                        <p class="placeholder-text">Click an event on the timeline to view details</p>
                     </div>
                 </div>
-                <div class="earth-panel">
-                    <div class="earth-card">
-                        <h3>Earth View</h3>
-                        <div id="earth-container">
-                            <div class="earth-placeholder">
-                                <p>Select an event to view its location</p>
-                            </div>
+                <div class="earth-card">
+                    <h3>Earth View</h3>
+                    <div id="earth-container">
+                        <div class="earth-placeholder">
+                            <p>Select an event to view its location</p>
                         </div>
+                    </div>
                         <!-- Map Filter Controls -->
                         <div id="map-filter-controls" class="map-filter-controls hidden" style="margin-top: 15px; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);">
                             <h4 style="margin-bottom: 10px; font-size: 1rem;">Filter Timeline by Location</h4>

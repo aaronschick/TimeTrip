@@ -323,6 +323,12 @@ async function loadTimeline(startYear, endYear) {
     hideError();
     showLoading();
     
+    // Add loading class to timeline panel for opacity transition
+    const timelinePanel = document.querySelector('.timeline-panel');
+    if (timelinePanel) {
+        timelinePanel.classList.add('is-loading');
+    }
+    
     // Clear any existing highlight when loading new timeline
     clearEventHighlight();
     
@@ -398,6 +404,11 @@ async function loadTimeline(startYear, endYear) {
         console.log('Timeline rendered successfully');
         hideLoading();
         
+        // Remove loading class after render
+        if (timelinePanel) {
+            timelinePanel.classList.remove('is-loading');
+        }
+        
         // Wire up Plotly events for Observatory Mode
         wireUpPlotlyEvents();
         
@@ -446,6 +457,7 @@ function hideError() {
 function showModal(modal) {
     if (modal) {
         modal.classList.remove('hidden');
+        modal.classList.add('is-open');
         // Prevent body scroll when modal is open
         document.body.style.overflow = 'hidden';
     }
@@ -453,7 +465,11 @@ function showModal(modal) {
 
 function hideModal(modal) {
     if (modal) {
-        modal.classList.add('hidden');
+        modal.classList.remove('is-open');
+        // Small delay to allow transition
+        setTimeout(() => {
+            modal.classList.add('hidden');
+        }, 300);
         // Restore body scroll
         document.body.style.overflow = '';
     }
@@ -797,12 +813,22 @@ function selectEvent(event) {
 function showSearchResults() {
     if (searchResultsDiv) {
         searchResultsDiv.classList.remove('hidden');
+        // Use requestAnimationFrame to ensure DOM update before adding class
+        requestAnimationFrame(() => {
+            searchResultsDiv.classList.add('is-open');
+        });
     }
 }
 
 function hideSearchResults() {
     if (searchResultsDiv) {
-        searchResultsDiv.classList.add('hidden');
+        searchResultsDiv.classList.remove('is-open');
+        // Small delay to allow transition before hiding
+        setTimeout(() => {
+            if (!searchResultsDiv.classList.contains('is-open')) {
+                searchResultsDiv.classList.add('hidden');
+            }
+        }, 300);
     }
     selectedSearchIndex = -1;
     currentSearchResults = [];
@@ -1182,13 +1208,12 @@ function createGlobeVisualization(container, continent, coords, isSpecificLocati
     ` : '';
     
     const html = `
-        <div style="position: relative; width: 100%; height: 100%; border-radius: 8px; overflow: hidden;">
+        <div class="earth-wrapper">
             <iframe 
                 id="earth-iframe"
+                class="earth-iframe"
                 src="${embedUrl}"
-                width="100%"
-                height="100%"
-                style="border:0; border-radius: 8px; ${window.appState.mapSelectionMode ? 'cursor: crosshair;' : ''}"
+                style="width: 100%; height: 100%; border: none; border-radius: 8px; ${window.appState.mapSelectionMode ? 'cursor: crosshair;' : ''}"
                 allowfullscreen=""
                 loading="lazy"
                 referrerpolicy="no-referrer-when-downgrade"
@@ -1196,23 +1221,14 @@ function createGlobeVisualization(container, continent, coords, isSpecificLocati
                 onerror="this.parentElement.innerHTML='<div style=\\'padding: 40px; text-align: center; color: rgba(255,255,255,0.7);\\'><div style=\\'font-size: 3rem; margin-bottom: 10px;\\'>🌍</div><p>${escapeHtml(continent)}</p><a href=\\'${mapsLink}\\' target=\\'_blank\\' style=\\'color: #4a9eff; text-decoration: none;\\'>Open in Google Maps</a></div>'">
             </iframe>
             ${mapControlsHtml}
-            <div style="position: absolute; bottom: 10px; right: 10px; display: flex; gap: 8px; z-index: 10; pointer-events: none; flex-direction: column; align-items: flex-end;">
+            <div class="earth-controls">
                 ${window.appState.mapFilter ? `
-                <button onclick="clearMapFilter()" style="background: rgba(220,53,69,0.9); color: #fff; padding: 8px 12px; border-radius: 6px; font-size: 0.85rem; border: none; cursor: pointer; pointer-events: auto; margin-bottom: 8px; backdrop-filter: blur(10px);">
-                    ✕ Clear Filter
-                </button>
+                <button onclick="clearMapFilter()" class="earth-clear-filter-btn">✕ Clear Filter</button>
                 ` : ''}
-                <button onclick="toggleMapSelectionMode()" style="background: rgba(0,0,0,0.85); color: #4a9eff; padding: 8px 12px; border-radius: 6px; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.2); cursor: pointer; pointer-events: auto; backdrop-filter: blur(10px); margin-bottom: 8px;">
-                    ${window.appState.mapSelectionMode ? '✓' : '📍'} Select Location
-                </button>
-                <a href="${earthLink}" target="_blank" 
-                   style="background: rgba(0,0,0,0.85); color: #4a9eff; padding: 10px 14px; border-radius: 8px; font-size: 0.9rem; text-decoration: none; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2); transition: all 0.3s ease; display: inline-block; pointer-events: auto; box-shadow: 0 4px 15px rgba(0,0,0,0.3);"
-                   onmouseover="this.style.background='rgba(74,158,255,0.4)'; this.style.color='#fff'; this.style.transform='translateY(-2px)';"
-                   onmouseout="this.style.background='rgba(0,0,0,0.85)'; this.style.color='#4a9eff'; this.style.transform='translateY(0)';">
-                    🌍 Google Earth
-                </a>
+                <button onclick="toggleMapSelectionMode()" class="earth-select-btn">${window.appState.mapSelectionMode ? '✓' : '📍'} Select Location</button>
+                <a href="${earthLink}" target="_blank" class="earth-link-btn">🌍 Google Earth</a>
             </div>
-            <div style="position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.7); padding: 8px 12px; border-radius: 6px; font-size: 0.85rem; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2); pointer-events: none; z-index: 10;">
+            <div class="earth-location-label">
                 <strong>${escapeHtml(continent)}</strong>
             </div>
         </div>
@@ -1398,15 +1414,57 @@ function enableFluidScrolling(graphDiv) {
     // Set initial cursor style
     graphDiv.style.cursor = 'grab';
     
-    // Handle wheel events for zoom only (with modifier keys)
+    // Handle wheel events for zoom (with modifier keys) and horizontal pan (2-finger trackpad)
     graphDiv.addEventListener('wheel', (event) => {
         // Only handle if we have valid layout data
         if (!graphDiv.layout || !graphDiv.layout.xaxis || !graphDiv.layout.xaxis.range) {
             return;
         }
         
+        // Check for horizontal scrolling (2-finger trackpad)
+        const hasHorizontalScroll = Math.abs(event.deltaX) > Math.abs(event.deltaY);
+        
         // Only zoom with modifier keys (Ctrl/Cmd/Shift)
         const isZoom = event.ctrlKey || event.metaKey || event.shiftKey;
+        
+        // Handle horizontal panning from trackpad
+        if (!isZoom && hasHorizontalScroll && Math.abs(event.deltaX) > 0) {
+            event.preventDefault();
+            event.stopPropagation();
+            
+            // Get current axis ranges
+            const currentRange = graphDiv.layout.xaxis.range;
+            const currentStart = currentRange[0];
+            const currentEnd = currentRange[1];
+            const currentSpan = currentEnd - currentStart;
+            
+            // Pan based on horizontal scroll
+            const panFactor = currentSpan / graphDiv.getBoundingClientRect().width;
+            const panAmount = -event.deltaX * panFactor * 0.5; // Scale for sensitivity
+            
+            const newStart = currentStart + panAmount;
+            const newEnd = currentEnd + panAmount;
+            
+            // Apply pan
+            Plotly.relayout(graphDiv, {
+                'xaxis.range': [newStart, newEnd]
+            });
+            
+            // Update backdrop after pan (debounced)
+            clearTimeout(scrollTimeout);
+            scrollTimeout = setTimeout(() => {
+                const newRange = graphDiv.layout.xaxis.range;
+                if (newRange && newRange[0] !== undefined && newRange[1] !== undefined) {
+                    const midYear = (newRange[0] + newRange[1]) / 2;
+                    if (typeof setBackdropForYear === 'function') {
+                        setBackdropForYear(midYear);
+                    }
+                }
+            }, 150);
+            
+            return;
+        }
+        
         if (!isZoom) {
             // Allow normal scrolling for other elements
             return;

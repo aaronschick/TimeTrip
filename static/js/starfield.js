@@ -47,9 +47,10 @@ function initStarfield(canvasId) {
         });
     }
     
-    // Animation loop
+    // Animation loop with improved rendering
     function animate() {
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+        // Use darker clear for better star visibility
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         
         const centerX = canvas.width / 2;
@@ -66,20 +67,33 @@ function initStarfield(canvasId) {
                 }
             }
             
-            // Calculate parallax offset
-            const parallaxX = prefersReducedMotion ? 0 : mouseX * (star.z / 1000) * 20;
-            const parallaxY = prefersReducedMotion ? 0 : mouseY * (star.z / 1000) * 20;
+            // Calculate parallax offset (reduced for subtlety)
+            const parallaxX = prefersReducedMotion ? 0 : mouseX * (star.z / 1000) * 15;
+            const parallaxY = prefersReducedMotion ? 0 : mouseY * (star.z / 1000) * 15;
             
             // Project 3D to 2D
             const k = 128 / star.z;
             const px = (star.x - centerX) * k + centerX + parallaxX;
             const py = (star.y - centerY) * k + centerY + parallaxY;
-            const r = star.size * k;
+            const r = Math.max(0.5, star.size * k);
             
-            // Draw star
+            // Draw star with improved rendering
             if (px >= 0 && px <= canvas.width && py >= 0 && py <= canvas.height) {
+                const opacity = Math.min(k * 0.9, 1);
+                // Draw glow for larger stars
+                if (r > 1) {
+                    const gradient = ctx.createRadialGradient(px, py, 0, px, py, r * 2);
+                    gradient.addColorStop(0, `rgba(255, 255, 255, ${opacity})`);
+                    gradient.addColorStop(0.5, `rgba(255, 255, 255, ${opacity * 0.5})`);
+                    gradient.addColorStop(1, `rgba(255, 255, 255, 0)`);
+                    ctx.fillStyle = gradient;
+                    ctx.beginPath();
+                    ctx.arc(px, py, r * 2, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                // Draw core star
                 ctx.beginPath();
-                ctx.fillStyle = `rgba(255, 255, 255, ${Math.min(k * 0.8, 1)})`;
+                ctx.fillStyle = `rgba(255, 255, 255, ${opacity})`;
                 ctx.arc(px, py, r, 0, Math.PI * 2);
                 ctx.fill();
             }
