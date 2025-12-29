@@ -1438,9 +1438,9 @@ function enableFluidScrolling(graphDiv) {
             const currentEnd = currentRange[1];
             const currentSpan = currentEnd - currentStart;
             
-            // Pan based on horizontal scroll
+            // Pan based on horizontal scroll (natural direction: scroll right = move right/later years)
             const panFactor = currentSpan / graphDiv.getBoundingClientRect().width;
-            const panAmount = -event.deltaX * panFactor * 0.5; // Scale for sensitivity
+            const panAmount = event.deltaX * panFactor * 0.5; // Positive deltaX (scroll right) = move right (later years)
             
             const newStart = currentStart + panAmount;
             const newEnd = currentEnd + panAmount;

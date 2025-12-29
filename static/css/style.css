@@ -650,7 +650,8 @@ header h1 {
 }
 
 .details-card,
-.earth-card {
+.earth-card,
+.event-details-card {
     background: rgba(255, 255, 255, var(--surface-opacity-medium));
     backdrop-filter: blur(var(--blur-medium));
     -webkit-backdrop-filter: blur(var(--blur-medium));
@@ -665,7 +666,8 @@ header h1 {
 }
 
 .details-card::before,
-.earth-card::before {
+.earth-card::before,
+.event-details-card::before {
     content: '';
     position: absolute;
     top: 0;
@@ -680,7 +682,8 @@ header h1 {
 }
 
 .details-card::after,
-.earth-card::after {
+.earth-card::after,
+.event-details-card::after {
     content: '';
     position: absolute;
     top: 0;
@@ -700,39 +703,20 @@ header h1 {
 }
 
 .details-card:hover,
-.earth-card:hover {
+.earth-card:hover,
+.event-details-card:hover {
     transform: translateY(-2px);
     box-shadow: var(--shadow-lg), var(--glow-sm);
 }
 
 .details-card h3,
-.earth-card h3 {
+.earth-card h3,
+.event-details-card h3 {
     font-size: clamp(1.2rem, 2.5vw, 1.5rem);
     font-weight: 600;
     margin-bottom: var(--spacing-md);
     padding-bottom: var(--spacing-sm);
     border-bottom: 1px solid rgba(255, 255, 255, var(--border-opacity));
-}
-
-.event-details-card::before,
-.earth-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background: linear-gradient(90deg, 
-        transparent 0%, 
-        rgba(255, 255, 255, 0.2) 50%, 
-        transparent 100%);
-    pointer-events: none;
-}
-
-.event-details-card:hover,
-.earth-card:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-lg), var(--glow-sm);
 }
 
 .event-detail-item {
