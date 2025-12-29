@@ -557,7 +557,7 @@ class TimelineGenerator:
         y_max = len(categories) - 0.5 + (max_lanes * lane_offset)
         
         fig.update_yaxes(
-            title_text="Category",
+            title_text="",  # Removed y-axis title, keeping labels
             autorange="reversed",
             range=[y_max, y_min],  # Reversed: higher numbers at top
             tickmode='array',
@@ -696,7 +696,7 @@ class TimelineGenerator:
             height=900,
             hovermode="closest",
             dragmode="pan",
-            legend_title_text="Category",
+            legend_title_text="",  # Removed legend title
             title_text="",  # Removed title to avoid overlap
             margin=dict(t=40, b=80, l=60, r=40),  # Reduced top margin since no title
             # Observatory Mode: Fully transparent backgrounds
