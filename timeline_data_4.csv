@@ -1,128 +1,129 @@
-id,title,category,continent,start_year,end_year,description,
-hadean-eon,Hadean Eon,era,Global,-4600000000,-4000000000,"Earliest eon of Earth history, before a stable crust formed.",
-archean-eon,Archean Eon,era,Global,-4000000000,-2500000000,Eon when Earth's crust cooled and the first known life appeared.,
-proterozoic-eon,Proterozoic Eon,era,Global,-2500000000,-541000000,Eon marked by oxygenation of the atmosphere and early multicellular life.,
-phanerozoic-eon,Phanerozoic Eon,era,Global,-541000000,0,"Eon of abundant animal and plant life, from Cambrian to present.",
-cambrian-explosion,Cambrian explosion,era,Global,-541000000,-520000000,Rapid diversification of most major animal groups in the fossil record.,
-permian-triassic-extinction,Permian–Triassic extinction,era,Global,-252000000,-251000000,"Largest known mass extinction, eliminating most marine and many terrestrial species.",
-dinosaur-extinction,End-Cretaceous extinction,era,Global,-66000000,-65000000,Mass extinction that wiped out non-avian dinosaurs and many other groups.,
-first-hominins,Early hominins,migration,Africa,-7000000,-4000000,Earliest human-lineage species appearing in Africa.,
-neanderthals,Neanderthals in Eurasia,migration,Europe,-400000,-40000,Widespread Neanderthal populations across Europe and western Asia.,
-holocene,Holocene epoch,era,Global,-11700,2025,Current interglacial epoch following the last Ice Age.,
-austronesian-expansion,Austronesian expansion,migration,Oceania,-3000,1200,Spread of seafaring Austronesian-speaking peoples across the Pacific and Indian Oceans.,
-old-kingdom-egypt,Old Kingdom Egypt,civilization,Africa,-2700,-2200,Period of pyramid building and centralized pharaonic rule along the Nile.,
-indus-valley,Indus Valley Civilization,civilization,Asia,-2600,-1900,Urban Bronze Age civilization in the Indus River basin.,
-akkadian-empire,Akkadian Empire,empire,Asia,-2334,-2154,Early Mesopotamian empire founded by Sargon of Akkad.,
-middle-kingdom-egypt,Middle Kingdom Egypt,civilization,Africa,-2050,-1650,Reunified Egyptian state with renewed cultural and political strength.,
-minoans,Minoan civilization,civilization,Europe,-2000,-1450,Bronze Age civilization on Crete with palaces such as Knossos.,
-call-of-abraham,Call of Abraham,religion,Middle East,-1800,-1800,Traditional date for the call of Abraham and the beginnings of a covenant lineage.,
-new-kingdom-egypt,New Kingdom Egypt,civilization,Africa,-1550,-1070,Imperial age of Egypt with expansion into Levant and Nubia.,
-exodus-egypt,Exodus from Egypt (traditional),religion,Middle East,-1250,-1250,Traditional dating of the religion Exodus narrative.,
-bantu-expansion,Bantu expansion,migration,Africa,-1000,1500,Gradual migration of Bantu-speaking peoples across sub-Saharan Africa.,
-davidic-kingdom,Davidic kingdom in Israel,religion,Middle East,-1000,-960,Approximate period associated with the reign of King David.,
-rise-of-the-hebrew-kingdoms,Rise of the Hebrew kingdoms,biblical,Middle East,-1000,-600,"Israelite and Judahite kingdoms consolidate in the Levant, forming the historical backdrop for much of the Hebrew Bible.",added
-first-temple,First Temple period,religion,Middle East,-960,-586,Era of the Temple of Solomon in Jerusalem.,
-neo-assyrian-empire,Neo-Assyrian Empire,empire,Asia,-911,-612,Powerful empire dominating the Near East with military campaigns.,
-rise-of-greek-city-states,Rise of Greek city-states,civilization,Europe,-800,-500,"Independent Greek poleis like Athens and Sparta emerge, pioneering Western politics, art, and philosophy.",added
-founding-of-rome,Founding of Rome,civilization,Europe,-753,-753,"Traditional date of Rome’s founding, marking the rise of a city that will dominate the Mediterranean.",added
-homeric-epics-codified,Homeric epics codified,civilization,Europe,-750,-700,"Oral traditions like the Iliad and Odyssey are written down, shaping Greek identity, religion, and literature.",added
-babylonian-exile,Babylonian Exile,religion,Middle East,-586,-538,Period after destruction of the First Temple when many Judeans were exiled.,
-birth-of-buddhism,Birth of Buddhism,civilization,Asia,-563,-483,"Siddhartha Gautama teaches a path to enlightenment in northern India, giving rise to the Buddhist tradition.",added
-confucius-and-confucianism,Confucius and Confucianism,civilization,Asia,-551,-479,Confucius articulates an ethical and political philosophy that will guide East Asian societies for centuries.,added
-achaemenid-persia,Achaemenid Persian Empire,empire,Asia,-550,-330,Empire stretching from the Aegean to the Indus under rulers like Cyrus and Darius.,
-persian-empire-unifies-near-east,Persian Empire unifies Near East,empire,Middle East,-550,-330,"The Achaemenid Empire links Egypt, Mesopotamia, and Iran under an efficient imperial administration and road network.",added
-athenian-democracy-established,Athenian democracy established,civilization,Europe,-508,-322,"Athens develops an unprecedented citizen assembly system, becoming a reference point for later democratic experiments.",added
-classical-greece,Classical Greek city-states,civilization,Europe,-500,-323,"Era of Athens, Sparta, and other poleis with major cultural achievements.",
-greco-persian-wars,Greco-Persian Wars,war,Europe,-499,-449,"Greek city-states repel massive Persian invasions, preserving their independence and reshaping Mediterranean power balances.",added
-life-of-socrates,Life of Socrates,civilization,Europe,-469,-399,"Socrates challenges Athenian norms through relentless questioning, laying foundations for Western philosophical inquiry.",added
-peloponnesian-war,Peloponnesian War,war,Europe,-431,-404,Prolonged conflict between Athens and Sparta and their allies.,
-life-of-plato,Life of Plato,civilization,Europe,-427,-347,"Plato founds the Academy and explores justice, reality, and knowledge in dialogues that become core philosophical texts.",added
-life-of-aristotle,Life of Aristotle,civilization,Europe,-384,-322,"Aristotle systematizes logic, biology, ethics, and politics, profoundly influencing later science and philosophy.",added
-alexander-the-greats-conquests,Alexander the Great’s conquests,empire,Europe,-336,-323,"Macedonian armies under Alexander topple the Persian Empire and reach India, fusing cultures across three continents.",added
-spread-of-hellenistic-culture,Spread of Hellenistic culture,civilization,Europe,-323,-31,"Greek language and culture blend with Egyptian, Persian, and Near Eastern traditions in successor kingdoms.",added
-mauryan-empire-india,Mauryan Empire,civilization,Asia,-322,-185,First large unified empire in most of the Indian subcontinent.,
-mauryan-empire-founded,Mauryan Empire founded,empire,Asia,-322,-185,"The Mauryan state unifies much of the Indian subcontinent, promoting administration, Buddhism, and long-distance trade.",added
-roman-republic-peak-and-expansion,Roman Republic peak & expansion,empire,Europe,-300,-27,"The Roman Republic conquers Italy and the Mediterranean, spreading Roman law, culture, and institutions.",added
-punic-wars,Punic Wars,war,Europe,-264,-146,Series of wars between Rome and Carthage for dominance in the western Mediterranean.,
-qin-unification-of-china,Qin unification of China,empire,Asia,-221,-206,"The Qin dynasty standardizes laws, writing, and measures, creating the first centralized Chinese empire.",added
-han-china,Han Dynasty China,empire,Asia,-206,220,Imperial dynasty consolidating Chinese state and Silk Road trade.,
-rise-of-the-han-dynasty,Rise of the Han Dynasty,empire,Asia,-206,220,The Han consolidate Chinese imperial rule and expand trade networks linking East Asia to Central Asia and beyond.,added
-spread-of-the-silk-road,Spread of the Silk Road,civilization,Asia,-100,300,"Caravan routes link China, Central Asia, and the Mediterranean, carrying silk, spices, religions, and ideas.",added
-roman-empire-established,Roman Empire established,empire,Europe,-27,476,"Augustus transforms Rome from republic to empire, overseeing a long period of relative peace and imperial expansion.",added
-birth-of-jesus-rise-of-christianity,Birth of Jesus / Rise of Christianity,biblical,Middle East,-4,33,The life and teachings of Jesus of Nazareth inspire a movement that will grow into a global religion.,added
-polynesian-settlement,Polynesian settlement of Pacific,migration,Oceania,0,1300,Voyaging and settlement of remote Pacific islands by Polynesian navigators.,
-pauline-missions,Pauline missions,religion,Middle East,50,65,Travels and letters of Paul that spread early Christianity.,
-destruction-of-jerusalem-second-temple,Destruction of Jerusalem Second Temple,biblical,Middle East,70,70,"Roman forces destroy the Second Temple, reshaping Jewish religious life and accelerating diaspora communities.",added
-maya-classic,Classic Maya cities,civilization,Americas,250,900,Flourishing of Maya city-states in Mesoamerica.,
-division-of-roman-empire,Division of Roman Empire,empire,Europe,285,395,Administrative split between eastern and western halves anticipates the separate destinies of Rome and Byzantium.,added
-constantine-legalizes-christianity,Constantine legalizes Christianity,biblical,Europe,313,313,"The Edict of Milan grants Christianity legal status, fundamentally changing its relationship to imperial power.",added
-gupta-india,Gupta period,civilization,Asia,320,550,Era often called a 'classical age' of Indian art and sciences.,
-council-of-nicaea,Council of Nicaea,biblical,Europe,325,325,Bishops convene under Constantine to define core Christian doctrine and produce the Nicene Creed.,added
-byzantine-empire,Byzantine Empire,empire,Europe,330,1453,Eastern Roman Empire centered on Constantinople.,
-fall-of-western-roman-empire,Fall of Western Roman Empire,empire,Europe,476,476,The deposition of Romulus Augustulus marks the end of imperial rule in the Latin West.,added
-justinians-reign-and-corpus-juris-civilis,Justinian’s reign & Corpus Juris Civilis,civilization,Europe,527,565,Byzantine emperor Justinian codifies Roman law and briefly reconquers parts of the former Western Empire.,added
-rise-of-islam-life-of-muhammad,Rise of Islam; life of Muhammad,civilization,Middle East,570,632,"Muhammad’s preaching in Arabia gives rise to Islam, a new monotheistic faith and community.",added
-tang-dynasty-golden-age,Tang Dynasty golden age,civilization,Asia,618,907,"China experiences political stability, urban growth, and artistic and technological flourishing under Tang rule.",added
-islamic-caliphates-expand,Islamic Caliphates expand,empire,Middle East,632,750,"Successor caliphates rapidly conquer from Iberia to Central Asia, spreading Islam and Arabic culture.",added
-umayyad-caliphate,Umayyad Caliphate,empire,Middle East,661,750,Early Islamic dynasty ruling a vast empire from Damascus.,
-abbasid-caliphate,Abbasid Caliphate,empire,Middle East,750,1258,Islamic dynasty with capital at Baghdad and a flourishing of scholarship.,
-viking-age,Viking Age,migration,Europe,750,1100,"Scandinavian seafarers raid, trade, and settle from the North Atlantic to Russia, reshaping northern Europe.",added
-charlemagne-crowned-emperor,Charlemagne crowned Emperor,empire,Europe,800,814,"Charlemagne is crowned Emperor in Rome, symbolizing a revived Western imperial ideal under Frankish rule.",added
-feudalism-entrenched-in-europe,Feudalism entrenched in Europe,civilization,Europe,800,1300,"Networks of lords, vassals, and fiefs structure landholding, warfare, and politics in medieval Europe.",added
-song-china,Song Dynasty China,civilization,Asia,960,1279,"Chinese dynasty noted for economic growth, technology, and urbanization.",
-song-dynasty-economic-technological-revolution,Song Dynasty economic/technological revolution,civilization,Asia,960,1279,"Song China pioneers paper money, advanced ironworking, and large cities in a vibrant commercial economy.",added
-great-schism-between-roman-and-eastern-churches,Great Schism between Roman & Eastern Churches,biblical,Europe,1054,1054,Mutual excommunications formalize the split between Roman Catholic and Eastern Orthodox Christianity.,added
-norman-conquest-of-england,Norman conquest of England,war,Europe,1066,1066,"William of Normandy defeats the English king at Hastings, transforming England’s elite, law, and language.",added
-first-crusade,First Crusade,war,Europe,1096,1099,"Western European crusaders seize Jerusalem, intensifying Christian–Muslim conflict in the eastern Mediterranean.",added
-university-system-established-in-europe,University system established in Europe,civilization,Europe,1100,1300,"Cathedral and municipal schools evolve into universities, institutionalizing higher learning and scholarship.",added
-mongol-empire,Mongol Empire,empire,Asia,1206,1368,"Largest contiguous land empire in history, founded by Genghis Khan.",
-genghis-khan-unites-mongols,Genghis Khan unites Mongols,empire,Asia,1206,1227,Genghis Khan forges steppe tribes into a unified force that will build a vast Eurasian empire.,added
-mongol-conquests,Mongol conquests,war,Asia,1206,1294,"Mongol armies devastate and integrate regions from China to Eastern Europe, opening new routes for trade and exchange.",added
-magna-carta-signed,Magna Carta signed,civilization,Europe,1215,1215,"English nobles compel King John to accept limits on royal authority, a key precedent for constitutional government.",added
-marco-polo-travels-to-china,Marco Polo travels to China,civilization,Europe,1271,1295,A Venetian merchant’s journey to Yuan China broadens European awareness of Asia’s wealth and sophistication.,added
-ottoman-empire,Ottoman Empire,empire,Europe,1299,1922,"Empire spanning southeastern Europe, Anatolia, and the Middle East.",
-ottoman-empire-founded,Ottoman Empire founded,empire,Middle East,1299,1922,"Anatolian beylik grows into a multiethnic empire spanning Southeast Europe, the Middle East, and North Africa.",added
-hundred-years-war,Hundred Years' War,war,Europe,1337,1453,Intermittent conflict between England and France over dynastic claims.,
-black-death,Black Death,era,Europe,1347,1351,"A devastating plague kills a large share of Europe’s population, disrupting economies and social structures.",added
-european-renaissance-begins,European Renaissance begins,era,Europe,1350,1600,"Revival of classical learning and arts transforms European culture, science, and politics.",added
-ming-dynasty-founded,Ming Dynasty founded,empire,Asia,1368,1644,"A native Chinese dynasty restores Han rule, sponsors maritime voyages, and oversees demographic and economic growth.",added
-aztec-empire,Aztec Triple Alliance,civilization,Americas,1428,1521,Mesoamerican empire centered on Tenochtitlan.,
-inca-empire,Inca heartland,civilization,Americas,1438,1533,Andean imperial civilization centered on Cuzco.,
-gutenberg-invents-movable-type-printing,Gutenberg invents movable-type printing,civilization,Europe,1450,1455,Mechanical printing dramatically lowers the cost of books and accelerates the spread of ideas and literacy.,added
-fall-of-constantinople,Fall of Constantinople,war,Europe,1453,1453,"Ottoman forces capture Constantinople, ending the Byzantine Empire and shifting trade routes and power eastward.",added
-age-of-exploration-begins,Age of Exploration begins,era,Europe,1480,1600,"Portuguese and Spanish voyages open sea routes around Africa and across the Atlantic, linking distant continents.",added
-spanish-empire,Spanish Empire,empire,Europe,1492,1898,Maritime empire with colonies across the Americas and beyond.,
-protestant-reformation,Protestant Reformation,biblical,Europe,1517,1648,Martin Luther’s challenge to the Catholic Church fractures Western Christendom and reshapes European politics.,added
-spanish-conquest-of-the-americas,Spanish conquest of the Americas,war,Americas,1520,1540,"Spanish expeditions topple Aztec and Inca empires, bringing vast American territories under European rule.",added
-suleiman-the-magnificent-and-ottoman-peak,Suleiman the Magnificent and Ottoman peak,empire,Middle East,1520,1566,"Under Suleiman, the Ottoman Empire reaches its greatest territorial, legal, and cultural influence.",added
-scientific-revolution-begins,Scientific Revolution begins,era,Europe,1543,1700,New models of the cosmos and experiment-based science challenge traditional authorities in Europe.,added
-dutch-golden-age,Dutch Golden Age,civilization,Europe,1600,1700,"The Dutch Republic flourishes in trade, art, finance, and early capitalist enterprise.",added
-atlantic-slave-trade-peak,Atlantic slave trade peak,migration,Global,1600,1800,"Transatlantic traffic in enslaved Africans reaches its height, reshaping populations, economies, and cultures.",added
-tokugawa-shogunate-established-in-japan,Tokugawa Shogunate established in Japan,empire,Asia,1603,1868,A stable warrior government enforces peace and isolation while fostering internal development in Japan.,added
-30-years-war,30 Years’ War,war,Europe,1618,1648,A brutal religious and political conflict devastates much of Central Europe and ends with the Peace of Westphalia.,added
-english-civil-war-and-glorious-revolution,English Civil War & Glorious Revolution,war,Europe,1642,1688,Struggles between crown and Parliament lead to constitutional monarchy and strengthened parliamentary power.,added
-qing-china,Qing Dynasty China,empire,Asia,1644,1912,"Last imperial dynasty of China, expanding territory to its greatest extent.",
-peter-the-great-modernizes-russia,Peter the Great modernizes Russia,empire,Europe,1682,1725,"Peter reforms Russia’s army, administration, and society, integrating it more tightly into European politics.",added
-newton-publishes-principia,Newton publishes Principia,civilization,Europe,1687,1687,"Isaac Newton formulates laws of motion and universal gravitation, transforming physics and astronomy.",added
-enlightenment-era,Enlightenment era,era,Europe,1700,1800,"Thinkers promote reason, rights, and secular governance, influencing revolutions and reforms across the Atlantic world.",added
-british-empire,British Empire,empire,Europe,1707,1945,Global empire with extensive colonies and trade networks.,
-american-revolution,American Revolutionary War,war,Americas,1775,1783,War of independence of the Thirteen Colonies from Great Britain.,
-us-constitution-adopted,US Constitution adopted,civilization,Americas,1787,1789,"The United States establishes a written federal constitution with checks, balances, and separation of powers.",added
-french-revolution,French Revolution,civilization,Europe,1789,1799,"Revolutionaries overthrow the monarchy and experiment with radical ideas of citizenship, equality, and rights.",added
-haitian-revolution,Haitian Revolution,war,Americas,1791,1804,"Enslaved people in Saint-Domingue overthrow colonial rule, creating the first Black republic.",added
-industrial-revolution-accelerates,Industrial Revolution accelerates,era,Europe,1800,1850,"Mechanized industry, steam power, and factories transform work, productivity, and urban life.",added
-napoleonic-wars,Napoleonic Wars,war,Europe,1803,1815,Series of wars involving Napoleonic France and shifting European coalitions.,
-latin-american-independence-movements,Latin American independence movements,war,Americas,1810,1830,Creole leaders and popular uprisings break Spanish and Portuguese rule across Latin America.,added
-opium-wars,Opium Wars,war,Asia,1839,1860,Conflicts between Britain and Qing China open treaty ports and weaken Chinese sovereignty.,added
-unification-of-italy,Unification of Italy,civilization,Europe,1861,1870,Nationalist campaigns and diplomacy consolidate various states into the Kingdom of Italy.,added
-us-civil-war-abolition-of-slavery,US Civil War / abolition of slavery,war,Americas,1861,1865,Conflict between Union and Confederacy ends legal slavery in the United States and preserves the Union.,added
-meiji-restoration-modernizes-japan,Meiji Restoration modernizes Japan,civilization,Asia,1868,1912,"Japan rapidly industrializes, centralizes power, and adopts modern institutions while retaining imperial rule.",added
-unification-of-germany,Unification of Germany,civilization,Europe,1871,1871,"Prussia leads German states into a unified empire, reshaping central European power.",added
-telephone-invented,Telephone invented,civilization,Americas,1876,1876,Alexander Graham Bell’s invention enables near-instant voice communication over long distances.,added
-light-bulb-and-mass-electrification,Light bulb and mass electrification,civilization,Global,1879,1900,"Electric lighting and power grids begin to transform cities, industry, and daily life.",added
-berlin-conference-and-scramble-for-africa,Berlin Conference & Scramble for Africa,empire,Africa,1884,1914,"European powers partition most of Africa into colonies, ignoring existing societies and borders.",added
-wright-brothers-first-flight,Wright brothers’ first flight,civilization,Americas,1903,1903,"The Wright brothers achieve controlled powered flight, inaugurating the age of aviation.",
-einsteins-miracle-year,Einstein’s “miracle year”,civilization,Europe,1905,1905,Albert Einstein publishes papers on relativity and quanta that revolutionize modern physics.,
-mexican-revolution,Mexican Revolution,war,Americas,1910,1920,"A complex social and political conflict reshapes landownership, governance, and national identity in Mexico.",
-cold-war,Cold War era,war,Global,1947,1991,Period of geopolitical rivalry between the United States and the Soviet Union.,
-x-ray-radioactivity-discoveries,X-ray radioactivity discoveries,civilization,Europe,1895,1905,New findings in physics and medicine reveal hidden structures of matter and the human body.,
+id,title,category,continent,start_year,end_year,description,start_date,end_date,lat,lon,location_label,geometry,location_confidence
+hadean-eon,Hadean Eon,era,Global,-4600000000,-4000000000,"Earliest eon of Earth history, before a stable crust formed.",,,,,,,exact
+archean-eon,Archean Eon,era,Global,-4000000000,-2500000000,Eon when Earth's crust cooled and the first known life appeared.,,,,,,,exact
+proterozoic-eon,Proterozoic Eon,era,Global,-2500000000,-541000000,Eon marked by oxygenation of the atmosphere and early multicellular life.,,,,,,,exact
+phanerozoic-eon,Phanerozoic Eon,era,Global,-541000000,0,"Eon of abundant animal and plant life, from Cambrian to present.",,,,,,,exact
+cambrian-explosion,Cambrian explosion,era,Global,-541000000,-520000000,Rapid diversification of most major animal groups in the fossil record.,,,,,,,exact
+permian-triassic-extinction,Permian–Triassic extinction,era,Global,-252000000,-251000000,"Largest known mass extinction, eliminating most marine and many terrestrial species.",,,,,,,exact
+dinosaur-extinction,End-Cretaceous extinction,era,Global,-66000000,-65000000,Mass extinction that wiped out non-avian dinosaurs and many other groups.,,,,,,,exact
+first-hominins,Early hominins,dicovery,Africa,-7000000,-4000000,Earliest human-lineage species appearing in Africa.,,,,,,,exact
+neanderthals,Neanderthals in Eurasia,dicovery,Europe,-400000,-40000,Widespread Neanderthal populations across Europe and western Asia.,,,,,,,exact
+holocene,Holocene epoch,era,Global,-11700,2025,Current interglacial epoch following the last Ice Age.,,,,,,,exact
+austronesian-expansion,Austronesian expansion,dicovery,Oceania,-3000,1200,Spread of seafaring Austronesian-speaking peoples across the Pacific and Indian Oceans.,,,,,,,exact
+old-kingdom-egypt,Old Kingdom Egypt,era,Africa,-2700,-2200,Period of pyramid building and centralized pharaonic rule along the Nile.,,,,,,,exact
+indus-valley,Indus Valley Civilization,civilization,Asia,-2600,-1900,Urban Bronze Age civilization in the Indus River basin.,,,,,,,exact
+akkadian-empire,Akkadian Empire,empire,Asia,-2334,-2154,Early Mesopotamian empire founded by Sargon of Akkad.,,,,,,,exact
+middle-kingdom-egypt,Middle Kingdom Egypt,era,Africa,-2050,-1650,Reunified Egyptian state with renewed cultural and political strength.,,,,,,,exact
+minoans,Minoan civilization,civilization,Europe,-2000,-1450,Bronze Age civilization on Crete with palaces such as Knossos.,,,,,,,exact
+call-of-abraham,Call of Abraham,religion,Middle East,-1800,-1800,Traditional date for the call of Abraham and the beginnings of a covenant lineage.,,,,,,,exact
+new-kingdom-egypt,New Kingdom Egypt,era,Africa,-1550,-1070,Imperial age of Egypt with expansion into Levant and Nubia.,,,,,,,exact
+exodus-egypt,Exodus from Egypt (traditional),religion,Middle East,-1250,-1250,Traditional dating of the religion Exodus narrative.,,,,,,,exact
+bantu-expansion,Bantu expansion,discovery,Africa,-1000,1500,Gradual migration of Bantu-speaking peoples across sub-Saharan Africa.,,,,,,,exact
+davidic-kingdom,Davidic kingdom in Israel,civilization,Middle East,-1000,-960,Approximate period associated with the reign of King David.,,,,,,,exact
+rise-of-the-hebrew-kingdoms,Rise of the Hebrew kingdoms,civilization,Middle East,-1000,-600,"Israelite and Judahite kingdoms consolidate in the Levant, forming the historical backdrop for much of the Hebrew Bible.",,,,,,,exact
+first-temple,First Temple period,religion,Middle East,-960,-586,Era of the Temple of Solomon in Jerusalem.,,,,,,,exact
+neo-assyrian-empire,Neo-Assyrian Empire,empire,Asia,-911,-612,Powerful empire dominating the Near East with military campaigns.,,,,,,,exact
+rise-of-greek-city-states,Rise of Greek city-states,civilization,Europe,-800,-500,"Independent Greek poleis like Athens and Sparta emerge, pioneering Western politics, art, and philosophy.",,,,,,,exact
+founding-of-rome,Founding of Rome,civilization,Europe,-753,-753,"Traditional date of Rome’s founding, marking the rise of a city that will dominate the Mediterranean.",,,,,,,exact
+homeric-epics-codified,Homeric epics codified,culture,Europe,-750,-700,"Oral traditions like the Iliad and Odyssey are written down, shaping Greek identity, religion, and literature.",,,,,,,exact
+babylonian-exile,Babylonian Exile,civilization,Middle East,-586,-538,Period after destruction of the First Temple when many Judeans were exiled.,,,,,,,exact
+Siddhartha-Gautama-birth-of-buddhism,Birth of Buddhism,people,Asia,-563,-483,"Siddhartha Gautama teaches a path to enlightenment in northern India, giving rise to the Buddhist tradition.",,,,,,,exact
+confucius-and-confucianism,Confucius and Confucianism,people,Asia,-551,-479,Confucius articulates an ethical and political philosophy that will guide East Asian societies for centuries.,,,,,,,exact
+achaemenid-persia,Achaemenid Persian Empire,empire,Asia,-550,-330,"Empire stretching from the Aegean to the Indus under rulers like Cyrus and Darius.  The Achaemenid Empire links Egypt, Mesopotamia, and Iran under an efficient imperial administration and road network.",,,,,,,exact
+stoicism,Stoicism,Culture,Europe,-300,200,"Stoicism is an ancient Greek/Roman philosophy focused on living virtuously (with Wisdom, Courage, Justice, Temperance) by mastering your mind, accepting what you can't control (like external events) and focusing on your own reactions, leading to inner peace, resilience, and a good life, not emotional numbness, but clear-headed strength",,,,,,,exact
+athenian-democracy-established,Athenian democracy established,civilization,Europe,-508,-322,"Athens develops an unprecedented citizen assembly system, becoming a reference point for later democratic experiments.",,,,,,,exact
+classical-greece,Classical Greek city-states,civilization,Europe,-500,-323,"Era of Athens, Sparta, and other poleis with major cultural achievements.",,,,,,,exact
+greco-persian-wars,Greco-Persian Wars,conflicts,Europe,-499,-449,"Greek city-states repel massive Persian invasions, preserving their independence and reshaping Mediterranean power balances.",,,,,,,exact
+life-of-socrates,Life of Socrates,people,Europe,-469,-399,"Socrates challenges Athenian norms through relentless questioning, laying foundations for Western philosophical inquiry.",,,,,,,exact
+peloponnesian-war,Peloponnesian War,conflicts,Europe,-431,-404,Prolonged conflict between Athens and Sparta and their allies.,,,,,,,exact
+life-of-plato,Life of Plato,people,Europe,-427,-347,"Plato founds the Academy and explores justice, reality, and knowledge in dialogues that become core philosophical texts.",,,,,,,exact
+life-of-aristotle,Life of Aristotle,people,Europe,-384,-322,"Aristotle systematizes logic, biology, ethics, and politics, profoundly influencing later science and philosophy.",,,,,,,exact
+alexander-the-greats-conquests,Alexander the Great’s conquests,conflicts,Europe,-336,-323,"Macedonian armies under Alexander topple the Persian Empire and reach India, fusing cultures across three continents.",,,,,,,exact
+spread-of-hellenistic-culture,Spread of Hellenistic culture,civilization,Europe,-323,-31,"Greek language and culture blend with Egyptian, Persian, and Near Eastern traditions in successor kingdoms.",,,,,,,exact
+mauryan-empire-india,Mauryan Empire founded,empire,Asia,-322,-185,"First large unified empire in most of the Indian subcontinent, promoting administration, Buddhism, and long-distance trade",,,,,,,exact
+alexander-fleming,Alexander Fleming,people,Europe,1881,1955,"a Scottish physician and microbiologist, best known for discovering the world's first broadly effective antibiotic substance, which he named penicillin",,,,,,,exact
+roman-republic-peak-and-expansion,Roman Republic peak & expansion,empire,Europe,-300,-27,"The Roman Republic conquers Italy and the Mediterranean, spreading Roman law, culture, and institutions.",,,,,,,exact
+punic-wars,Punic Wars,conflicts,Europe,-264,-146,Series of wars between Rome and Carthage for dominance in the western Mediterranean.,,,,,,,exact
+qin-unification-of-china,Qin unification of China,empire,Asia,-221,-206,"The Qin dynasty standardizes laws, writing, and measures, creating the first centralized Chinese empire.",,,,,,,exact
+han-dynasty-china,Han Dynasty China,empire,Asia,-206,220,Imperial dynasty consolidating Chinese state and Silk Road trade linking East Asia to Central Asia and beyond.,,,,,,,exact
+spread-of-the-silk-road,Spread of the Silk Road,civilization,Asia,-100,300,"Caravan routes link China, Central Asia, and the Mediterranean, carrying silk, spices, religions, and ideas.",,,,,,,exact
+roman-empire-established,Roman Empire established,empire,Europe,-27,476,"Augustus transforms Rome from republic to empire, overseeing a long period of relative peace and imperial expansion.",,,,,,,exact
+birth-of-jesus-rise-of-christianity,Birth of Jesus / Rise of Christianity,religion,Middle East,-4,33,The life and teachings of Jesus of Nazareth inspire a movement that will grow into a global religion.,,,,,,,exact
+polynesian-settlement,Polynesian settlement of Pacific,civilization,Oceania,0,1300,Voyaging and settlement of remote Pacific islands by Polynesian navigators.,,,,,,,exact
+pauline-missions,Pauline missions,religion,Middle East,50,65,Travels and letters of Paul that spread early Christianity.,,,,,,,exact
+destruction-of-jerusalem-second-temple,Destruction of Jerusalem Second Temple,religion,Middle East,70,70,"Roman forces destroy the Second Temple, reshaping Jewish religious life and accelerating diaspora communities.",,,,,,,exact
+maya-classic,Classic Maya cities,civilization,Americas,250,900,Flourishing of Maya city-states in Mesoamerica.,,,,,,,exact
+division-of-roman-empire,Division of Roman Empire,civilization,Europe,285,395,Administrative split between eastern and western halves anticipates the separate destinies of Rome and Byzantium.,,,,,,,exact
+constantine-legalizes-christianity,Constantine legalizes Christianity,religion,Europe,313,313,"The Edict of Milan grants Christianity legal status, fundamentally changing its relationship to imperial power.",,,,,,,exact
+gupta-india,Gupta period,culture,Asia,320,550,Era often called a 'classical age' of Indian art and sciences.,,,,,,,exact
+council-of-nicaea,Council of Nicaea,religion,Europe,325,325,Bishops convene under Constantine to define core Christian doctrine and produce the Nicene Creed.,,,,,,,exact
+byzantine-empire,Byzantine Empire,empire,Europe,330,1453,Eastern Roman Empire centered on Constantinople.,,,,,,,exact
+Dark ages,Dark Ages,era,Global,476,1000,"After the fall of the roman Empire about 476 CE to 11th century.  There was a loss of Papyrus trade and Parchment was too expensive.  Many historians now prefer ""Early Middle Ages"" as the term ""Dark Ages"" is seen as inaccurate and judgmental, highlighting significant developments in art, religion (Catholic Church), and the foundations of European nations.   It was a time of oral traditions (epics like Beowulf), monastic learning, and the rise of new kingdoms, laying groundwork for later medieval flourishing.  Includes  the rise of powerful Germanic kingdoms, and the expansion of Islam.",,,,,,,exact
+fall-of-western-roman-empire,Fall of Western Roman Empire,empire,Europe,476,476,The deposition of Romulus Augustulus marks the end of imperial rule in the Latin West.,,,,,,,exact
+albert-einstein,Albert Einstien,people,Americas,1879,1955,Albert Einstein (14 March 1879 – 18 April 1955) was a German-born theoretical physicist best known for developing the theory of relativity.,,,,,,,exact
+justinians-reign-and-corpus-juris-civilis,Justinian’s reign & Corpus Juris Civilis,civilization,Europe,527,565,Byzantine emperor Justinian codifies Roman law and briefly reconquers parts of the former Western Empire.,,,,,,,exact
+rise-of-islam-life-of-muhammad,Rise of Islam; life of Muhammad,religion,Asia,570,632,"Muhammad’s preaching in Arabia gives rise to Islam, a new monotheistic faith and community.",,,,,,,exact
+tang-dynasty-golden-age,Tang Dynasty golden age,empire,Asia,618,907,"China experiences political stability, urban growth, and artistic and technological flourishing under Tang rule.",,,,,,,exact
+islamic-caliphates-expand,Islamic Caliphates expand,conflicts,Middle East,632,750,"Successor caliphates rapidly conquer from Iberia to Central Asia, spreading Islam and Arabic culture.",,,,,,,exact
+umayyad-caliphate,Umayyad Caliphate,conflicts,Middle East,661,750,Early Islamic dynasty ruling a vast empire from Damascus.,,,,,,,exact
+abbasid-caliphate,Abbasid Caliphate,conflicts,Middle East,750,1258,Islamic dynasty with capital at Baghdad and a flourishing of scholarship.,,,,,,,exact
+viking-age,Viking Age,era,Europe,750,1100,"Scandinavian seafarers raid, trade, and settle from the North Atlantic to Russia, reshaping northern Europe.",,,,,,,exact
+charlemagne-crowned-emperor,Charlemagne crowned Emperor,peolpe,Europe,800,814,"Charlemagne is crowned Emperor in Rome, symbolizing a revived Western imperial ideal under Frankish rule.",,,,,,,exact
+feudalism-entrenched-in-europe,Feudalism entrenched in Europe,civilization,Europe,800,1300,"Networks of lords, vassals, and fiefs structure landholding, warfare, and politics in medieval Europe.",,,,,,,exact
+song-china-dynasty,Song Dynasty China,empire,Asia,960,1279,"Chinese dynasty noted for economic growth, technology, and urbanization. Pioneers paper money, advanced ironworking, and large cities in a vibrant commercial economy",,,,,,,exact
+leonardo-da-vinci,Leonardo da Vinci,people,Europe,1452,1519,"Leonardo di ser Piero da Vinci was an Italian polymath of the High Renaissance who excelled in many fields, including painting, engineering, architecture, and science. He was known as a visionary who conceptualized inventions centuries ahead of their time, including the parachute, tank, and robot. ",,,,,,,exact
+great-schism-between-roman-and-eastern-churches,Great Schism between Roman & Eastern Churches,religion,Europe,1054,1054,Mutual excommunications formalize the split between Roman Catholic and Eastern Orthodox Christianity.,,,,,,,exact
+norman-conquest-of-england,Norman conquest of England,conflicts,Europe,1066,1066,"William of Normandy defeats the English king at Hastings, transforming England’s elite, law, and language.",,,,,,,exact
+first-crusade,First Crusade,conflicts,Europe,1096,1099,"Western European crusaders seize Jerusalem, intensifying Christian–Muslim conflict in the eastern Mediterranean.",,,,,,,exact
+university-system-established-in-europe,University system established in Europe,civilization,Europe,1100,1300,"Cathedral and municipal schools evolve into universities, institutionalizing higher learning and scholarship.",,,,,,,exact
+genghis-khan-unites-mongols,Genghis Khan unites Mongols,people,Asia,1206,1227,Genghis Khan forges steppe tribes into a unified force that will build a vast Eurasian empire.,,,,,,,exact
+mongol-conquests,Mongol conquests,conflicts,Asia,1206,1294,"Mongol armies devastate and integrate regions from China to Eastern Europe, opening new routes for trade and exchange.",,,,,,,exact
+mongol-empire,Mongol Empire,empire,Asia,1206,1368,"Largest contiguous land empire in history, founded by Genghis Khan.",,,,,,,exact
+magna-carta-signed,Magna Carta signed,civilization,Europe,1215,1215,"English nobles compel King John to accept limits on royal authority, a key precedent for constitutional government.",,,,,,,exact
+marco-polo-travels-to-china,Marco Polo travels to China,people,Europe,1271,1295,A Venetian merchant’s journey to Yuan China broadens European awareness of Asia’s wealth and sophistication.,,,,,,,exact
+ottoman-empire-founded,Ottoman Empire founded,empire,Middle East,1299,1922,"Anatolian beylik grows into a multiethnic empire spanning Southeast Europe, the Middle East, and North Africa.",,,,,,,exact
+mona-lisa,art by Leonardo da Vinci,culture,Europe,1503,1506,traditionally considered to depict the Italian noblewoman Lisa del Giocondo.[9] It is painted in oil on a white poplar panel.[10] Leonardo never gave the painting to the Giocondo family.[11] It was believed to have been painted between 1503 and 1506;,,,,,,,exact
+hundred-years-war,Hundred Years' War,conflicts,Europe,1337,1453,Intermittent conflict between England and France over dynastic claims.,,,,,,,exact
+black-death,Black Death,civilization,Europe,1347,1351,"A devastating plague kills a large share of Europe’s population, disrupting economies and social structures.",,,,,,,exact
+european-renaissance-begins,European Renaissance begins,era,Europe,1350,1600,"Revival of classical learning and arts transforms European culture, science, and politics.",,,,,,,exact
+ming-dynasty-founded,Ming Dynasty founded,empire,Asia,1368,1644,"A native Chinese dynasty restores Han rule, sponsors maritime voyages, and oversees demographic and economic growth.",,,,,,,exact
+aztec-empire,Aztec Triple Alliance,empire,Americas,1428,1521,Mesoamerican empire centered on Tenochtitlan.,,,,,,,exact
+inca-empire,Inca heartland,empire,Americas,1438,1533,Andean imperial civilization centered on Cuzco.,,,,,,,exact
+gutenberg-invents-movable-type-printing,Gutenberg invents movable-type printing,discovery,Europe,1450,1455,Mechanical printing dramatically lowers the cost of books and accelerates the spread of ideas and literacy.,,,,,,,exact
+fall-of-constantinople,Fall of Constantinople,conflicts,Europe,1453,1453,"Ottoman forces capture Constantinople, ending the Byzantine Empire and shifting trade routes and power eastward.",,,,,,,exact
+age-of-exploration-begins,Age of Exploration begins,discovery,Europe,1480,1600,"Portuguese and Spanish voyages open sea routes around Africa and across the Atlantic, linking distant continents.",,,,,,,exact
+spanish-empire,Spanish Empire,empire,Europe,1492,1898,Maritime empire with colonies across the Americas and beyond.,,,,,,,exact
+protestant-reformation,Protestant Reformation,religion,Europe,1517,1648,Martin Luther’s challenge to the Catholic Church fractures Western Christendom and reshapes European politics.,,,,,,,exact
+spanish-conquest-of-the-americas,Spanish conquest of the Americas,conflicts,Americas,1520,1540,"Spanish expeditions topple Aztec and Inca empires, bringing vast American territories under European rule.",,,,,,,exact
+suleiman-the-magnificent-and-ottoman-peak,Suleiman the Magnificent and Ottoman peak,civilization,Middle East,1520,1566,"Under Suleiman, the Ottoman Empire reaches its greatest territorial, legal, and cultural influence.",,,,,,,exact
+scientific-revolution-begins,Scientific Revolution begins,discovery,Europe,1543,1700,New models of the cosmos and experiment-based science challenge traditional authorities in Europe.,,,,,,,exact
+atlantic-slave-trade-peak,Atlantic slave trade peak,civilization,Global,1600,1800,"Transatlantic traffic in enslaved Africans reaches its height, reshaping populations, economies, and cultures.",,,,,,,exact
+dutch-golden-age,Dutch Golden Age,civilization,Europe,1600,1700,"The Dutch Republic flourishes in trade, art, finance, and early capitalist enterprise.",,,,,,,exact
+tokugawa-shogunate-established-in-japan,Tokugawa Shogunate established in Japan,civilization,Asia,1603,1868,A stable warrior government enforces peace and isolation while fostering internal development in Japan.,,,,,,,exact
+30-years-war,30 Years’ War,conflicts,Europe,1618,1648,A brutal religious and political conflict devastates much of Central Europe and ends with the Peace of Westphalia.,,,,,,,exact
+english-civil-war-and-glorious-revolution,English Civil War & Glorious Revolution,conflicts,Europe,1642,1688,Struggles between crown and Parliament lead to constitutional monarchy and strengthened parliamentary power.,,,,,,,exact
+qing-china,Qing Dynasty China,empire,Asia,1644,1912,"Last imperial dynasty of China, expanding territory to its greatest extent.",,,,,,,exact
+peter-the-great-modernizes-russia,Peter the Great modernizes Russia,people,Europe,1682,1725,"Peter reforms Russia’s army, administration, and society, integrating it more tightly into European politics.",,,,,,,exact
+newton-publishes-principia,Newton publishes Principia,people,Europe,1687,1687,"Isaac Newton formulates laws of motion and universal gravitation, transforming physics and astronomy.",,,,,,,exact
+enlightenment-era,Enlightenment era,discovery,Europe,1700,1800,"Thinkers promote reason, rights, and secular governance, influencing revolutions and reforms across the Atlantic world.",,,,,,,exact
+british-empire,British Empire,empire,Europe,1707,1945,Global empire with extensive colonies and trade networks.,,,,,,,exact
+american-revolution,American Revolutionary War,conflicts,Americas,1775,1783,War of independence of the Thirteen Colonies from Great Britain.,,,,,,,exact
+us-constitution-adopted,US Constitution adopted,civilization,Americas,1787,1789,"The United States establishes a written federal constitution with checks, balances, and separation of powers.",,,,,,,exact
+french-revolution,French Revolution,conflicts,Europe,1789,1799,"Revolutionaries overthrow the monarchy and experiment with radical ideas of citizenship, equality, and rights.",,,,,,,exact
+haitian-revolution,Haitian Revolution,conflicts,Americas,1791,1804,"Enslaved people in Saint-Domingue overthrow colonial rule, creating the first Black republic.",,,,,,,exact
+industrial-revolution-accelerates,Industrial Revolution accelerates,era,Europe,1800,1850,"Mechanized industry, steam power, and factories transform work, productivity, and urban life.",,,,,,,exact
+napoleonic-wars,Napoleonic Wars,conflicts,Europe,1803,1815,Series of wars involving Napoleonic France and shifting European coalitions.,,,,,,,exact
+latin-american-independence-movements,Latin American independence movements,conflicts,Americas,1810,1830,Creole leaders and popular uprisings break Spanish and Portuguese rule across Latin America.,,,,,,,exact
+opium-wars,Opium Wars,conflicts,Asia,1839,1860,Conflicts between Britain and Qing China open treaty ports and weaken Chinese sovereignty.,,,,,,,exact
+unification-of-italy,Unification of Italy,civilization,Europe,1861,1870,Nationalist campaigns and diplomacy consolidate various states into the Kingdom of Italy.,,,,,,,exact
+us-civil-war-abolition-of-slavery,US Civil War / abolition of slavery,conflicts,Americas,1861,1865,Conflict between Union and Confederacy ends legal slavery in the United States and preserves the Union.,,,,,,,exact
+meiji-restoration-modernizes-japan,Meiji Restoration modernizes Japan,civilization,Asia,1868,1912,"Japan rapidly industrializes, centralizes power, and adopts modern institutions while retaining imperial rule.",,,,,,,exact
+unification-of-germany,Unification of Germany,civilization,Europe,1871,1871,"Prussia leads German states into a unified empire, reshaping central European power.",,,,,,,exact
+telephone-invented,Telephone invented,discovery,Americas,1876,1876,Alexander Graham Bell’s invention enables near-instant voice communication over long distances.,,,,,,,exact
+light-bulb-and-mass-electrification,Light bulb and mass electrification,discovery,Global,1879,1900,"Electric lighting and power grids begin to transform cities, industry, and daily life.",,,,,,,exact
+berlin-conference-and-scramble-for-africa,Berlin Conference & Scramble for Africa,civilization,Africa,1884,1914,"European powers partition most of Africa into colonies, ignoring existing societies and borders.",,,,,,,exact
+x-ray-radioactivity-discoveries,X-ray radioactivity discoveries,discovery,Europe,1895,1905,New findings in physics and medicine reveal hidden structures of matter and the human body.,,,,,,,exact
+wright-brothers-first-flight,Wright brothers’ first flight,discovery,Americas,1903,1903,"The Wright brothers achieve controlled powered flight, inaugurating the age of aviation.",,,,,,,exact
+einsteins-miracle-year,Einstein’s “miracle year”,people,Europe,1905,1905,Albert Einstein publishes papers on relativity and quanta that revolutionize modern physics.,,,,,,,exact
+mexican-revolution,Mexican Revolution,conflicts,Americas,1910,1920,"A complex social and political conflict reshapes landownership, governance, and national identity in Mexico.",,,,,,,exact
+cold-war,Cold War era,conflicts,Global,1947,1991,Period of geopolitical rivalry between the United States and the Soviet Union.,,,,,,,exact

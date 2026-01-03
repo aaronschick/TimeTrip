@@ -1,0 +1,6 @@
+id,title,category,continent,start_year,end_year,description,start_date,end_date,lat,lon,location_label,geometry,location_confidence
+example-001,Formation of Earth,era,Global,-4600000000,-4500000000,The Earth forms from the solar nebula.,,,,,"",,exact
+example-002,First Life Forms,era,Global,-3800000000,-3500000000,First single-celled organisms appear in the oceans.,,,,,"",,exact
+example-003,Ancient Egyptian Civilization,civilization,Africa,-3100,-30,Ancient Egyptian civilization flourished along the Nile River.,,2023-01-01,30.0444,31.2357,Cairo, Egypt,"{""type"": ""Point"", ""coordinates"": [31.2357, 30.0444]}",exact
+example-004,Roman Empire,empire,Europe,-27,476,The Roman Empire at its height.,2023-06-15,2023-12-31,41.9028,12.4964,Rome, Italy,"{""type"": ""Point"", ""coordinates"": [12.4964, 41.9028]}",exact
+example-005,World War II,war,Global,1939,1945,A global conflict involving most of the world's nations.,,,,,"",,approx
