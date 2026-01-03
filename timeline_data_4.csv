@@ -6,10 +6,10 @@ phanerozoic-eon,Phanerozoic Eon,era,Global,-541000000,0,"Eon of abundant animal 
 cambrian-explosion,Cambrian explosion,era,Global,-541000000,-520000000,Rapid diversification of most major animal groups in the fossil record.,,,,,,,exact
 permian-triassic-extinction,Permian–Triassic extinction,era,Global,-252000000,-251000000,"Largest known mass extinction, eliminating most marine and many terrestrial species.",,,,,,,exact
 dinosaur-extinction,End-Cretaceous extinction,era,Global,-66000000,-65000000,Mass extinction that wiped out non-avian dinosaurs and many other groups.,,,,,,,exact
-first-hominins,Early hominins,dicovery,Africa,-7000000,-4000000,Earliest human-lineage species appearing in Africa.,,,,,,,exact
-neanderthals,Neanderthals in Eurasia,dicovery,Europe,-400000,-40000,Widespread Neanderthal populations across Europe and western Asia.,,,,,,,exact
+first-hominins,Early hominins,discovery,Africa,-7000000,-4000000,Earliest human-lineage species appearing in Africa.,,,,,,,exact
+neanderthals,Neanderthals in Eurasia,discovery,Europe,-400000,-40000,Widespread Neanderthal populations across Europe and western Asia.,,,,,,,exact
 holocene,Holocene epoch,era,Global,-11700,2025,Current interglacial epoch following the last Ice Age.,,,,,,,exact
-austronesian-expansion,Austronesian expansion,dicovery,Oceania,-3000,1200,Spread of seafaring Austronesian-speaking peoples across the Pacific and Indian Oceans.,,,,,,,exact
+austronesian-expansion,Austronesian expansion,discovery,Oceania,-3000,1200,Spread of seafaring Austronesian-speaking peoples across the Pacific and Indian Oceans.,,,,,,,exact
 old-kingdom-egypt,Old Kingdom Egypt,era,Africa,-2700,-2200,Period of pyramid building and centralized pharaonic rule along the Nile.,,,,,,,exact
 indus-valley,Indus Valley Civilization,civilization,Asia,-2600,-1900,Urban Bronze Age civilization in the Indus River basin.,,,,,,,exact
 akkadian-empire,Akkadian Empire,empire,Asia,-2334,-2154,Early Mesopotamian empire founded by Sargon of Akkad.,,,,,,,exact
@@ -30,7 +30,7 @@ babylonian-exile,Babylonian Exile,civilization,Middle East,-586,-538,Period afte
 Siddhartha-Gautama-birth-of-buddhism,Birth of Buddhism,people,Asia,-563,-483,"Siddhartha Gautama teaches a path to enlightenment in northern India, giving rise to the Buddhist tradition.",,,,,,,exact
 confucius-and-confucianism,Confucius and Confucianism,people,Asia,-551,-479,Confucius articulates an ethical and political philosophy that will guide East Asian societies for centuries.,,,,,,,exact
 achaemenid-persia,Achaemenid Persian Empire,empire,Asia,-550,-330,"Empire stretching from the Aegean to the Indus under rulers like Cyrus and Darius.  The Achaemenid Empire links Egypt, Mesopotamia, and Iran under an efficient imperial administration and road network.",,,,,,,exact
-stoicism,Stoicism,Culture,Europe,-300,200,"Stoicism is an ancient Greek/Roman philosophy focused on living virtuously (with Wisdom, Courage, Justice, Temperance) by mastering your mind, accepting what you can't control (like external events) and focusing on your own reactions, leading to inner peace, resilience, and a good life, not emotional numbness, but clear-headed strength",,,,,,,exact
+stoicism,Stoicism,culture,Europe,-300,200,"Stoicism is an ancient Greek/Roman philosophy focused on living virtuously (with Wisdom, Courage, Justice, Temperance) by mastering your mind, accepting what you can't control (like external events) and focusing on your own reactions, leading to inner peace, resilience, and a good life, not emotional numbness, but clear-headed strength",,,,,,,exact
 athenian-democracy-established,Athenian democracy established,civilization,Europe,-508,-322,"Athens develops an unprecedented citizen assembly system, becoming a reference point for later democratic experiments.",,,,,,,exact
 classical-greece,Classical Greek city-states,civilization,Europe,-500,-323,"Era of Athens, Sparta, and other poleis with major cultural achievements.",,,,,,,exact
 greco-persian-wars,Greco-Persian Wars,conflicts,Europe,-499,-449,"Greek city-states repel massive Persian invasions, preserving their independence and reshaping Mediterranean power balances.",,,,,,,exact
@@ -68,7 +68,7 @@ islamic-caliphates-expand,Islamic Caliphates expand,conflicts,Middle East,632,75
 umayyad-caliphate,Umayyad Caliphate,conflicts,Middle East,661,750,Early Islamic dynasty ruling a vast empire from Damascus.,,,,,,,exact
 abbasid-caliphate,Abbasid Caliphate,conflicts,Middle East,750,1258,Islamic dynasty with capital at Baghdad and a flourishing of scholarship.,,,,,,,exact
 viking-age,Viking Age,era,Europe,750,1100,"Scandinavian seafarers raid, trade, and settle from the North Atlantic to Russia, reshaping northern Europe.",,,,,,,exact
-charlemagne-crowned-emperor,Charlemagne crowned Emperor,peolpe,Europe,800,814,"Charlemagne is crowned Emperor in Rome, symbolizing a revived Western imperial ideal under Frankish rule.",,,,,,,exact
+charlemagne-crowned-emperor,Charlemagne crowned Emperor,people,Europe,800,814,"Charlemagne is crowned Emperor in Rome, symbolizing a revived Western imperial ideal under Frankish rule.",,,,,,,exact
 feudalism-entrenched-in-europe,Feudalism entrenched in Europe,civilization,Europe,800,1300,"Networks of lords, vassals, and fiefs structure landholding, warfare, and politics in medieval Europe.",,,,,,,exact
 song-china-dynasty,Song Dynasty China,empire,Asia,960,1279,"Chinese dynasty noted for economic growth, technology, and urbanization. Pioneers paper money, advanced ironworking, and large cities in a vibrant commercial economy",,,,,,,exact
 leonardo-da-vinci,Leonardo da Vinci,people,Europe,1452,1519,"Leonardo di ser Piero da Vinci was an Italian polymath of the High Renaissance who excelled in many fields, including painting, engineering, architecture, and science. He was known as a visionary who conceptualized inventions centuries ahead of their time, including the parachute, tank, and robot. ",,,,,,,exact
